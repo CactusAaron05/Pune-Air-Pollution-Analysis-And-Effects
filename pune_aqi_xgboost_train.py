@@ -78,10 +78,10 @@ NUMERIC_FEATURES = [
     # Calendar
     'Is_Weekend',
 
-    # PM2.5 lag features
+    # PM2.5 (µg/m³) lag features
     'PM25_lag1h', 'PM25_lag3h', 'PM25_lag6h', 'PM25_lag24h',
 
-    # PM2.5 rolling window features
+    # PM2.5 (µg/m³) rolling window features
     'PM25_roll6h_mean', 'PM25_roll6h_std',
     'PM25_roll24h_mean', 'PM25_roll24h_std',
 
@@ -111,16 +111,70 @@ print(f" Total features: {len(ALL_FEATURES)}")
 for f in ALL_FEATURES:
     print(f" {f}")
 
+print(df.columns.tolist())
+
 # ── STEP 3: DROP ROWS WITH NULL TARGET OR CRITICAL FEATURES ──────────────────
 print("\n" + "=" * 60)
 print("STEP 3: Cleaning for model input")
 print("=" * 60)
 
-keep_cols = list(dict.fromkeys(ALL_FEATURES + [TARGET, 'Datetime_IST', 'Region', 'AQI_Category']))
+keep_cols = list(dict.fromkeys(
+    ALL_FEATURES +
+    [TARGET, 'Datetime_IST', 'Region', 'AQI_Category',
+     'PM2.5 (µg/m³)', 'PM10 (µg/m³)', 'NO2 (µg/m³)', 'CO (mg/m³)', 'Ozone (µg/m³)']
+))
 df_model = df[keep_cols].copy()
 
+# ===== ADD FOR FORECASTING =====
+df_model['target_1h'] = df_model['AQI'].shift(-1)
+df_model['target_3h'] = df_model['AQI'].shift(-3)
+df_model['target_6h'] = df_model['AQI'].shift(-6)
+
+# ── STEP X: Create pollutant targets (multi-horizon) ─────────────────
+
+# PM2.5 (µg/m³)
+# ===== ADD POLLUTANT FORECASTING TARGETS =====
+
+# PM2.5 (µg/m³)
+df_model["PM25_target_1h"] = df_model["PM2.5 (µg/m³)"].shift(-1)
+df_model["PM25_target_3h"] = df_model["PM2.5 (µg/m³)"].shift(-3)
+df_model["PM25_target_6h"] = df_model["PM2.5 (µg/m³)"].shift(-6)
+
+# PM10
+df_model["PM10_target_1h"] = df_model["PM10 (µg/m³)"].shift(-1)
+df_model["PM10_target_3h"] = df_model["PM10 (µg/m³)"].shift(-3)
+df_model["PM10_target_6h"] = df_model["PM10 (µg/m³)"].shift(-6)
+
+# NO2
+df_model["NO2_target_1h"] = df_model["NO2 (µg/m³)"].shift(-1)
+df_model["NO2_target_3h"] = df_model["NO2 (µg/m³)"].shift(-3)
+df_model["NO2_target_6h"] = df_model["NO2 (µg/m³)"].shift(-6)
+
+# CO
+df_model["CO_target_1h"] = df_model["CO (mg/m³)"].shift(-1)
+df_model["CO_target_3h"] = df_model["CO (mg/m³)"].shift(-3)
+df_model["CO_target_6h"] = df_model["CO (mg/m³)"].shift(-6)
+
+# Ozone
+df_model["O3_target_1h"] = df_model["Ozone (µg/m³)"].shift(-1)
+df_model["O3_target_3h"] = df_model["Ozone (µg/m³)"].shift(-3)
+df_model["O3_target_6h"] = df_model["Ozone (µg/m³)"].shift(-6)
+
+# ==============================
+
 before = len(df_model)
-df_model = df_model.dropna(subset=[TARGET] + NUMERIC_FEATURES)
+df_model = df_model.dropna(
+    subset=[
+        TARGET,
+        *NUMERIC_FEATURES,
+        'target_1h','target_3h','target_6h',
+        'PM25_target_1h','PM25_target_3h','PM25_target_6h',
+        'PM10_target_1h','PM10_target_3h','PM10_target_6h',
+        'NO2_target_1h','NO2_target_3h','NO2_target_6h',
+        'CO_target_1h','CO_target_3h','CO_target_6h',
+        'O3_target_1h','O3_target_3h','O3_target_6h'
+    ]
+)
 after = len(df_model)
 
 print(f" Rows before drop: {before:,}")
@@ -136,7 +190,10 @@ train_df = df_model.iloc[:split_idx].copy()
 test_df = df_model.iloc[split_idx:].copy()
 
 X_test = test_df[ALL_FEATURES]
-y_test = test_df[TARGET]
+
+y_test_1h = test_df['target_1h']
+y_test_3h = test_df['target_3h']
+y_test_6h = test_df['target_6h']
 
 print(f" Train: {len(train_df):,} rows "
       f"({train_df['Datetime_IST'].min().date()} → {train_df['Datetime_IST'].max().date()})")
@@ -180,7 +237,10 @@ else:
     sample_weight = np.ones(len(train_df))
 
 X_train = train_df[ALL_FEATURES]
-y_train = train_df[TARGET]
+
+y_train_1h = train_df['target_1h']
+y_train_3h = train_df['target_3h']
+y_train_6h = train_df['target_6h']
 
 # ── STEP 5: FEATURE SCALING ───────────────────────────────────────────────────
 print("\n" + "=" * 60)
@@ -211,7 +271,8 @@ print("\n" + "=" * 60)
 print("STEP 6: Training XGBoost model")
 print("=" * 60)
 
-model = xgb.XGBRegressor(
+# ===== TRAIN 1H MODEL =====
+model_1h = xgb.XGBRegressor(
     n_estimators=600,
     max_depth=7,
     learning_rate=0.05,
@@ -227,29 +288,119 @@ model = xgb.XGBRegressor(
     n_jobs=-1,
 )
 
-model.fit(
+aqi_model_params = model_1h.get_params()
+
+model_1h.fit(
     X_train_scaled,
-    y_train,
+    y_train_1h,
     sample_weight=sample_weight,
-    eval_set=[(X_test_scaled, y_test)],
+    eval_set=[(X_test_scaled, y_test_1h)],
     verbose=50,
 )
 
-model.save_model('models/aqi_xgb_model.json')
-print(f"\n Best iteration : {model.best_iteration}")
-print(" Model saved → models/aqi_xgb_model.json")
+model_1h.save_model('models/aqi_model_1h.json')
+
+
+# ===== TRAIN 3H MODEL =====
+model_3h = xgb.XGBRegressor(**aqi_model_params)
+
+model_3h.fit(
+    X_train_scaled,
+    y_train_3h,
+    sample_weight=sample_weight,
+    eval_set=[(X_test_scaled, y_test_3h)],
+    verbose=50,
+)
+
+model_3h.save_model('models/aqi_model_3h.json')
+
+
+# ===== TRAIN 6H MODEL =====
+model_6h = xgb.XGBRegressor(**aqi_model_params)
+
+model_6h.fit(
+    X_train_scaled,
+    y_train_6h,
+    sample_weight=sample_weight,
+    eval_set=[(X_test_scaled, y_test_6h)],
+    verbose=50,
+)
+
+model_6h.save_model('models/aqi_model_6h.json')
+
+print("\n Models saved:")
+print(" models/aqi_model_1h.json")
+print(" models/aqi_model_3h.json")
+print(" models/aqi_model_6h.json")
+
+# ── STEP 6B: POLLUTANT MODEL TRAINING ───────────────────────────────────────
+print("\n" + "=" * 60)
+print("STEP 6B: Training pollutant forecasting models")
+print("=" * 60)
+
+POLLUTANTS = {
+    "PM25": ["PM25_target_1h", "PM25_target_3h", "PM25_target_6h"],
+    "PM10": ["PM10_target_1h", "PM10_target_3h", "PM10_target_6h"],
+    "NO2":  ["NO2_target_1h", "NO2_target_3h", "NO2_target_6h"],
+    "CO":   ["CO_target_1h", "CO_target_3h", "CO_target_6h"],
+    "O3":   ["O3_target_1h", "O3_target_3h", "O3_target_6h"],
+}
+
+for pollutant, targets in POLLUTANTS.items():
+    print(f"\n--- Training models for {pollutant} ---")
+
+    y_train_1h = train_df[targets[0]]
+    y_train_3h = train_df[targets[1]]
+    y_train_6h = train_df[targets[2]]
+
+    y_test_1h = test_df[targets[0]]
+    y_test_3h = test_df[targets[1]]
+    y_test_6h = test_df[targets[2]]
+
+    # 1H model
+    pollutant_model_1h = xgb.XGBRegressor(**aqi_model_params)
+    pollutant_model_1h.fit(
+        X_train_scaled,
+        y_train_1h,
+        sample_weight=sample_weight,
+        eval_set=[(X_test_scaled, y_test_1h)],
+        verbose=0,
+    )
+    pollutant_model_1h.save_model(f"models/{pollutant}_model_1h.json")
+
+    # 3H model
+    pollutant_model_3h = xgb.XGBRegressor(**aqi_model_params)
+    pollutant_model_3h.fit(
+        X_train_scaled,
+        y_train_3h,
+        eval_set=[(X_test_scaled, y_test_3h)],
+        verbose=0,
+    )
+    pollutant_model_3h.save_model(f"models/{pollutant}_model_3h.json")
+
+    # 6H model
+    pollutant_model_6h = xgb.XGBRegressor(**aqi_model_params)
+    pollutant_model_6h.fit(
+        X_train_scaled,
+        y_train_6h,
+        eval_set=[(X_test_scaled, y_test_6h)],
+        verbose=0,
+    )
+    pollutant_model_6h.save_model(f"models/{pollutant}_model_6h.json")
+
+print("\n All pollutant models trained and saved.")
 
 # ── STEP 7: EVALUATION ───────────────────────────────────────────────────────
 print("\n" + "=" * 60)
 print("STEP 7: Evaluation on test set")
 print("=" * 60)
 
-y_pred = model.predict(X_test_scaled)
+y_pred = model_1h.predict(X_test_scaled)  # evaluate 1h model
 y_pred = np.clip(y_pred, 0, 500)
 
-mae = mean_absolute_error(y_test, y_pred)
-rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-r2 = r2_score(y_test, y_pred)
+mae = mean_absolute_error(y_test_1h, y_pred)
+rmse = np.sqrt(mean_squared_error(y_test_1h, y_pred))
+r2 = r2_score(y_test_1h, y_pred)
 
 print(f" MAE (Mean Absolute Error) : {mae:.2f} AQI points")
 print(f" RMSE (Root Mean Sq. Error): {rmse:.2f} AQI points")
@@ -260,21 +411,21 @@ test_results['Predicted_AQI'] = y_pred
 
 print("\n Per-Region MAE on test set:")
 for region, grp in test_results.groupby('Region'):
-    r_mae = mean_absolute_error(grp[TARGET], grp['Predicted_AQI'])
+    r_mae = mean_absolute_error(grp['target_1h'], grp['Predicted_AQI'])
     print(f" {region:<25} MAE = {r_mae:.1f}")
 
 if 'AQI_Category' in test_results.columns:
     print("\n Per-Category MAE on test set:")
     for cat, grp in test_results.groupby('AQI_Category'):
         if len(grp) > 0:
-            c_mae = mean_absolute_error(grp[TARGET], grp['Predicted_AQI'])
+            c_mae = mean_absolute_error(grp['target_1h'], grp['Predicted_AQI'])
             print(f" {cat:<15} MAE = {c_mae:.1f}   (n={len(grp):,})")
 
 metrics = {
     'MAE': round(mae, 2),
     'RMSE': round(rmse, 2),
     'R2': round(r2, 4),
-    'best_iteration': int(model.best_iteration) if model.best_iteration is not None else None,
+    'best_iteration': int(model_1h.best_iteration) if model_1h.best_iteration is not None else None,
     'n_features': len(ALL_FEATURES),
     'train_rows': len(X_train),
     'test_rows': len(X_test),
@@ -290,7 +441,7 @@ print("=" * 60)
 
 importance_df = pd.DataFrame({
     'Feature': ALL_FEATURES,
-    'Importance': model.feature_importances_,
+    'Importance': model_1h.feature_importances_,
 }).sort_values('Importance', ascending=True).tail(20)
 
 pm10_new_features = {
@@ -353,8 +504,9 @@ for cat in CAT_ORDER:
     mask = cat_all == cat
     if mask.sum() == 0:
         continue
+
     fig_scatter.add_trace(go.Scatter(
-        x=np.array(y_test)[mask],
+        x=np.array(y_test_1h)[mask],   # ✅ FIX
         y=y_pred[mask],
         mode='markers',
         name=cat,
@@ -368,7 +520,7 @@ for cat in CAT_ORDER:
 unknown_mask = cat_all == 'Unknown'
 if unknown_mask.sum() > 0:
     fig_scatter.add_trace(go.Scatter(
-        x=np.array(y_test)[unknown_mask],
+        x=np.array(y_test_1h)[unknown_mask],
         y=y_pred[unknown_mask],
         mode='markers',
         name='Unknown',
@@ -386,7 +538,7 @@ fig_scatter.add_trace(go.Scatter(
 fig_scatter.update_layout(
     title={"text": f"Actual vs Predicted AQI — XGBoost (R² = {r2:.3f})<br>"
                    "<span style='font-size:16px;font-weight:normal;'>"
-                   f"All {len(y_test):,} test rows | colour = AQI category</span>"},
+                   f"All {len(y_test_1h):,} test rows | colour = AQI category</span>"},
     legend=dict(
         orientation='h',
         yanchor='bottom',
@@ -416,15 +568,24 @@ print(" Chart saved → output/xgb_actual_vs_predicted.png")
 print("\n" + "=" * 60)
 print("STEP 10: Inference example (copy into FastAPI endpoint)")
 print("=" * 60)
-print("""
-import xgboost as xgb, joblib, numpy as np, pandas as pd
 
-model = xgb.XGBRegressor()
-model.load_model('models/aqi_xgb_model.json')
+import xgboost as xgb, joblib, numpy as np, pandas as pd
+# ===== LOAD ALL 3 MODELS =====
+model_1h = xgb.XGBRegressor()
+model_1h.load_model('models/aqi_model_1h.json')
+
+model_3h = xgb.XGBRegressor()
+model_3h.load_model('models/aqi_model_3h.json')
+
+model_6h = xgb.XGBRegressor()
+model_6h.load_model('models/aqi_model_6h.json')
+
+# ===== LOAD ARTIFACTS =====
 scaler = joblib.load('models/feature_scaler.pkl')
 all_features = joblib.load('models/feature_columns.pkl')
 num_features = joblib.load('models/numeric_feature_columns.pkl')
 
+# ===== SAMPLE INPUT =====
 sample = {
     'Hour_sin': np.sin(2*np.pi*8/24), 'Hour_cos': np.cos(2*np.pi*8/24),
     'Month_sin': np.sin(2*np.pi*12/12), 'Month_cos': np.cos(2*np.pi*12/12),
@@ -440,12 +601,17 @@ sample = {
     'Area_Industrial': 1, 'Season_Winter': 1, 'Region_Hadapsar': 1,
 }
 
+# ===== PREPARE INPUT =====
 row = pd.DataFrame([{col: sample.get(col, 0) for col in all_features}])
 row[num_features] = scaler.transform(row[num_features])
-predicted_aqi = float(np.clip(model.predict(row), 0, 500)[0])
-print(f"Predicted AQI: {predicted_aqi:.1f}")
-""")
 
-print("\n" + "=" * 60)
-print("ALL STEPS COMPLETE — outputs saved to models/ and output/")
-print("=" * 60)
+# ===== PREDICTIONS =====
+pred_1h = float(np.clip(model_1h.predict(row), 0, 500)[0])
+pred_3h = float(np.clip(model_3h.predict(row), 0, 500)[0])
+pred_6h = float(np.clip(model_6h.predict(row), 0, 500)[0])
+
+# ===== OUTPUT =====
+print(f"AQI after 1 hour: {pred_1h:.1f}")
+print(f"AQI after 3 hours: {pred_3h:.1f}")
+print(f"AQI after 6 hours: {pred_6h:.1f}")
+
