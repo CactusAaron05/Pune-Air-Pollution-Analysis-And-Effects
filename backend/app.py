@@ -8,6 +8,8 @@ from model import (
     POLLUTANT_NAME_MAP   
 )
 
+from cause_engine import detect_causes
+
 from health_data import compute_health_risk
 
 import pandas as pd
@@ -20,32 +22,44 @@ pollutants = ["PM2.5", "PM10", "NO2", "CO", "O3"]
 
 
 # ── ALERT ENGINE (TEMP — WILL IMPROVE LATER) ───────────────────────
-def generate_alerts(pred_1h, pred_3h, pred_6h):
+def generate_alerts(pred_1h, pred_3h, pred_6h, health_risk):
+    """
+    Data-driven alert system using trend + health impact
+    """
+
     alerts = []
 
-    if pred_1h > 300:
-        alerts.append("Severe AQI expected in 1 hour")
-    elif pred_1h > 200:
-        alerts.append("Poor AQI expected in 1 hour")
-    elif pred_1h > 100:
-        alerts.append("Moderate AQI expected in 1 hour")
+    # --- Trend detection ---
+    delta_1_3 = pred_3h - pred_1h
+    delta_3_6 = pred_6h - pred_3h
 
-    if pred_3h > 300:
-        alerts.append("Severe AQI expected in 3 hours")
-    elif pred_3h > 200:
-        alerts.append("Poor AQI expected in 3 hours")
-    elif pred_3h > 100:
-        alerts.append("Moderate AQI expected in 3 hours")
+    # --- Health severity ---
+    severity_map = {
+        "Minimal": 0,
+        "Mild": 1,
+        "Moderate": 2,
+        "Severe": 3
+    }
 
-    if pred_6h > 300:
-        alerts.append("Severe AQI expected in 6 hours")
-    elif pred_6h > 200:
-        alerts.append("Poor AQI expected in 6 hours")
-    elif pred_6h > 100:
-        alerts.append("Moderate AQI expected in 6 hours")
+    severity_1h = severity_map[health_risk["1h"]["interpretation"]["risk_level"]]
+    severity_3h = severity_map[health_risk["3h"]["interpretation"]["risk_level"]]
+    severity_6h = severity_map[health_risk["6h"]["interpretation"]["risk_level"]]
+
+    # --- Alert logic (data-driven relationships) ---
+
+    # Rapid deterioration
+    if delta_1_3 > 20 or delta_3_6 > 20:
+        alerts.append("Rapid deterioration in air quality expected")
+
+    # Sustained severe health risk
+    if severity_3h >= 2 or severity_6h >= 2:
+        alerts.append("Elevated health risk expected in coming hours")
+
+    # Peak warning
+    if pred_6h > pred_3h and pred_3h > pred_1h:
+        alerts.append("Air quality continuously worsening")
 
     return alerts
-
 
 # ── MAIN PREDICTION API ─────────────────────────────────────────────
 @app.get("/predict")
@@ -157,7 +171,8 @@ def predict(region: str):
 
 
     
-    # ── STEP 9: CAUSE DETECTION (DATA-DRIVEN) ─────────────────────
+    # ── STEP 9: CAUSE DETECTION (DATA-DRIVEN) ────────────────
+
 
     causes = {}
 
@@ -171,39 +186,47 @@ def predict(region: str):
             "O3": pollutant_preds["O3"][horizon],
         }
 
-        dominant = max(values, key=values.get)
+        cause = detect_causes(values)
 
-        causes[horizon] = {
-            "dominant_pollutant": dominant,
-            "value": values[dominant]
-        }
+        causes[horizon] = cause
 
+    health_risk = compute_health_risk(health_input)
     # ── STEP 9: ALERTS ──────────────────────────────────────────────
-    alerts = generate_alerts(pred_1h, pred_3h, pred_6h)
+    alerts = generate_alerts(pred_1h, pred_3h, pred_6h, health_risk)
 
     # ── STEP 10: CLEANUP ────────────────────────────────────────────
     cursor.close()
     conn.close()
 
     # ── STEP 10.5: HEALTH ENGINE ─────────────────────────────────────
+    for horizon in ["1h", "3h", "6h"]:
+        primary = causes[horizon]["primary_source"]["source"]
+        secondary = causes[horizon]["secondary_source"]
 
-    health_risk = compute_health_risk(health_input)
+        pollutant = health_risk[horizon]["dominant_pollutant"]
+
+        if secondary:
+            secondary_name = secondary["source"]
+            summary = f"{primary} (primary) and {secondary_name} (secondary) contributing to elevated {pollutant}"
+        else:
+            summary = f"{primary} contributing to elevated {pollutant}"
+
+        health_risk[horizon]["cause_summary"] = summary
+    
 
     # ── STEP 11: RESPONSE ───────────────────────────────────────────
-    return {
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(content={
     "region": region,
     "prediction_time": str(dt),
-
     "predicted_aqi": {
-        "1h": pred_1h,
-        "3h": pred_3h,
-        "6h": pred_6h
-    },
-
-    "predicted_pollutants": pollutant_preds,   
-    "causes": causes, 
-
-    "health_risk": health_risk,  
-
+    "1h": pred_1h,
+    "3h": pred_3h,
+    "6h": pred_6h
+},
+    "predicted_pollutants": pollutant_preds,
+    "causes": causes,
+    "health_risk": health_risk,
     "alerts": alerts
-}
+})

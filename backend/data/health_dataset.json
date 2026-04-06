@@ -1,0 +1,61 @@
+{
+  "PM2.5": {
+    "baseline": {
+      "value": 15,
+      "unit": "µg/m³",
+      "source": "WHO AQG 2021 (24-hour guideline interim target)"
+    },
+    "rr_per_unit": 1.08,
+    "delta_c_unit": 10,
+    "averaging_time": "24h",
+    "rr_source": "Global Burden of Disease (GBD) integrated exposure-response"
+  },
+
+  "PM10": {
+    "baseline": {
+      "value": 45,
+      "unit": "µg/m³",
+      "source": "WHO AQG 2021"
+    },
+    "rr_per_unit": 1.06,
+    "delta_c_unit": 10,
+    "averaging_time": "24h",
+    "rr_source": "WHO HRAPIE / epidemiological meta-analysis"
+  },
+
+  "NO2": {
+    "baseline": {
+      "value": 25,
+      "unit": "µg/m³",
+      "source": "WHO AQG 2021"
+    },
+    "rr_per_unit": 1.05,
+    "delta_c_unit": 10,
+    "averaging_time": "24h",
+    "rr_source": "WHO systematic review (NO2 mortality association)"
+  },
+
+  "O3": {
+    "baseline": {
+      "value": 100,
+      "unit": "µg/m³",
+      "source": "WHO AQG 2021 (8-hour)"
+    },
+    "rr_per_unit": 1.03,
+    "delta_c_unit": 10,
+    "averaging_time": "8h",
+    "rr_source": "WHO ozone exposure-response studies"
+  },
+
+  "CO": {
+    "baseline": {
+      "value": 4,
+      "unit": "mg/m³",
+      "source": "WHO AQG 2021"
+    },
+    "rr_per_unit": 1.02,
+    "delta_c_unit": 1,
+    "averaging_time": "24h",
+    "rr_source": "EPA / WHO toxicological studies"
+  }
+}

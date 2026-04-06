@@ -1,0 +1,21 @@
+{
+  "traffic_emission": {
+    "pollutants": ["NO2"],
+    "description": "Traffic-related emissions (NO2 dominated)"
+  },
+
+  "biomass_burning": {
+    "pollutants": ["PM2.5"],
+    "description": "Combustion-related fine particulate emissions"
+  },
+
+  "road_dust": {
+    "pollutants": ["PM10"],
+    "description": "Coarse particulate matter from dust and resuspension"
+  },
+
+  "secondary_ozone": {
+    "pollutants": ["O3"],
+    "description": "Photochemical ozone formation"
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "PM2.5": {
+    "short_term_effects": [
+      "Respiratory irritation",
+      "Asthma exacerbation"
+    ],
+    "long_term_effects": [
+      "Ischemic heart disease",
+      "Stroke",
+      "Chronic obstructive pulmonary disease",
+      "Lung cancer"
+    ],
+    "sensitive_groups": [
+      "children",
+      "elderly",
+      "pregnant_women",
+      "people_with_cardiovascular_disease",
+      "people_with_respiratory_disease"
+    ],
+    "sources": [
+      "WHO Air Quality Guidelines 2021",
+      "Global Burden of Disease (GBD) Study"
+    ]
+  },
+
+  "PM10": {
+    "short_term_effects": [
+      "Respiratory irritation",
+      "Cough"
+    ],
+    "long_term_effects": [
+      "Chronic bronchitis",
+      "Reduced lung function"
+    ],
+    "sensitive_groups": [
+      "children",
+      "elderly",
+      "people_with_respiratory_disease"
+    ],
+    "sources": [
+      "WHO Air Quality Guidelines 2021"
+    ]
+  },
+
+  "NO2": {
+    "short_term_effects": [
+      "Airway inflammation",
+      "Asthma exacerbation"
+    ],
+    "long_term_effects": [
+      "Reduced lung function"
+    ],
+    "sensitive_groups": [
+      "children",
+      "people_with_asthma"
+    ],
+    "sources": [
+      "WHO Air Quality Guidelines 2021",
+      "Global Burden of Disease (GBD) Study"
+    ]
+  },
+
+  "O3": {
+    "short_term_effects": [
+      "Chest tightness",
+      "Throat irritation"
+    ],
+    "long_term_effects": [
+      "Chronic respiratory disease"
+    ],
+    "sensitive_groups": [
+      "children",
+      "outdoor_workers",
+      "people_with_respiratory_disease"
+    ],
+    "sources": [
+      "WHO Air Quality Guidelines 2021"
+    ]
+  },
+
+  "CO": {
+    "short_term_effects": [
+      "Reduced oxygen delivery",
+      "Headache",
+      "Dizziness"
+    ],
+    "long_term_effects": [
+      "Cardiovascular stress"
+    ],
+    "sensitive_groups": [
+      "people_with_cardiovascular_disease",
+      "pregnant_women"
+    ],
+    "sources": [
+      "WHO Air Quality Guidelines 2021",
+      "United States Environmental Protection Agency (EPA)"
+    ]
+  }
+}

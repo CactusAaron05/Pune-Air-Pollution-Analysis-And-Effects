@@ -22,7 +22,7 @@ cols = [
     "AQI",
     "AQI_Category",
 ]
-df = df[cols].sort_values(["Datetime_IST", "Region"]).reset_index(drop=True)
+df = df[cols].sort_values(["Region", "Datetime_IST"]).reset_index(drop=True)
 
 # ── DB ─────────────────────────────────────────────
 conn = get_connection()
@@ -39,7 +39,7 @@ from db import get_connection
 df = pd.read_csv("../pune_aqi_master_final.csv")
 df["Datetime_IST"] = pd.to_datetime(df["Datetime_IST"])
 
-df = df.sort_values(["Region", "Datetime_IST"]).reset_index(drop=True)
+df = df.sort_values(["Datetime_IST", "Region"]).reset_index(drop=True)
 
 # ── DB CONNECTION ───────────────────────────────────
 conn = get_connection()
