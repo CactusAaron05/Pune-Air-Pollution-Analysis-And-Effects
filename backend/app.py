@@ -1,232 +1,452 @@
+# from fastapi import FastAPI
+# from fastapi.responses import JSONResponse
+
+# from db import get_connection
+
+# from model import (
+#     pollutant_models,
+#     scaler, all_features, num_features,
+#     POLLUTANT_NAME_MAP
+# )
+
+# from uncertainty_engine import simulate_predictions, compute_uncertainty_range
+# from cause_engine import detect_causes
+# from health_data import compute_health_risk
+# from solution_engine import generate_solutions
+
+# import pandas as pd
+# import numpy as np
+# import json
+# from datetime import datetime
+# import os
+
+# app = FastAPI()
+
+# BASE_DIR = os.path.dirname(__file__)
+
+# def load_json(path):
+#     with open(os.path.join(BASE_DIR, path)) as f:
+#         return json.load(f)
+
+# ALERT_CONFIG = load_json("data/alert_config.json")
+
+
+# # ───────────────── ALERT ENGINE ─────────────────
+# def generate_alerts(pred_1h, pred_3h, pred_6h, health_risk):
+
+#     alerts = []
+
+#     delta_1_3 = pred_3h - pred_1h
+#     delta_3_6 = pred_6h - pred_3h
+
+#     severity_map = ALERT_CONFIG["severity_levels"]
+#     threshold = ALERT_CONFIG["thresholds"]["rapid_change"]
+
+#     severity_3h = severity_map[health_risk["3h"]["interpretation"]["risk_level"]]
+#     severity_6h = severity_map[health_risk["6h"]["interpretation"]["risk_level"]]
+
+#     if delta_1_3 > threshold or delta_3_6 > threshold:
+#         alerts.append("Rapid deterioration in air quality expected")
+
+#     if severity_3h >= ALERT_CONFIG["thresholds"]["health_severity_threshold"]:
+#         alerts.append("Elevated health risk expected")
+
+#     if pred_6h > pred_3h > pred_1h:
+#         alerts.append("Air quality continuously worsening")
+
+#     return alerts
+
+
+# # ───────────────── MAIN API ─────────────────
+# @app.get("/predict")
+# def predict(region: str):
+
+#     if not region:
+#         return {"error": "Region required"}
+
+#     conn = get_connection()
+#     cursor = conn.cursor()
+
+#     # 🔥 STEP 1: GET PRECOMPUTED AQI
+#     cursor.execute("""
+#         SELECT timestamp, pred_1h, pred_3h, pred_6h
+#         FROM predictions
+#         WHERE region = %s
+#         ORDER BY timestamp DESC
+#         LIMIT 1
+#     """, (region,))
+
+#     row = cursor.fetchone()
+
+#     if not row:
+#         return {"error": "No predictions available yet"}
+
+#     timestamp, pred_1h, pred_3h, pred_6h = row
+
+#     predictions = {
+#         "1h": float(pred_1h),
+#         "3h": float(pred_3h),
+#         "6h": float(pred_6h)
+#     }
+
+#     # 🔥 STEP 2: FETCH RECENT DATA FOR FEATURE CONTEXT
+#     cursor.execute("""
+#         SELECT *
+#         FROM aqi_data
+#         WHERE region = %s
+#         ORDER BY datetime DESC
+#         LIMIT 80
+#     """, (region,))
+
+#     rows = cursor.fetchall()
+
+#     if len(rows) < 10:
+#         return {"error": "Not enough data for analysis"}
+
+#     rows = rows[::-1]
+
+#     df = pd.DataFrame([{
+#         "Datetime_IST": r[1],
+#         "PM2.5 (µg/m³)": r[3],
+#         "PM10 (µg/m³)": r[4],
+#         "NO2 (µg/m³)": r[5],
+#         "CO (mg/m³)": r[6],
+#         "Ozone (µg/m³)": r[7],
+#         "Area_Type": r[8],
+#         "Region": r[2]
+#     } for r in rows])
+
+#     df["Datetime_IST"] = pd.to_datetime(df["Datetime_IST"])
+
+#     # ───── BASIC FEATURES (only what is needed) ─────
+#     df["PM25_roll6h_mean"] = df["PM2.5 (µg/m³)"].rolling(6).mean()
+#     df["PM10_roll6h_mean"] = df["PM10 (µg/m³)"].rolling(6).mean()
+
+#     df = df.fillna(method="bfill")
+#     latest = df.iloc[-1]
+
+#     # ───── PREPARE MODEL INPUT ─────
+#     df_model = pd.get_dummies(df, columns=["Area_Type", "Region"], drop_first=True)
+
+#     for col in all_features:
+#         if col not in df_model.columns:
+#             df_model[col] = 0
+
+#     df_model = df_model[all_features]
+#     df_model[num_features] = scaler.transform(df_model[num_features])
+
+#     df_model = df_model.tail(1)
+
+#     # ───── POLLUTANT PREDICTIONS ─────
+#     pollutant_preds = {}
+
+#     for name, key in POLLUTANT_NAME_MAP.items():
+#         pollutant_preds[name] = {
+#             "1h": float(pollutant_models[key]["1h"].predict(df_model)[0]),
+#             "3h": float(pollutant_models[key]["3h"].predict(df_model)[0]),
+#             "6h": float(pollutant_models[key]["6h"].predict(df_model)[0]),
+#         }
+
+#     # ───── CAUSES ─────
+#     causes = {}
+#     for h in ["1h","3h","6h"]:
+#         vals = {p: pollutant_preds[p][h] for p in pollutant_preds}
+
+#         baseline = {
+#             "PM2.5": latest["PM25_roll6h_mean"],
+#             "PM10": latest["PM10_roll6h_mean"],
+#             "NO2": latest["NO2 (µg/m³)"],
+#             "CO": latest["CO (mg/m³)"],
+#             "O3": latest["Ozone (µg/m³)"],
+#         }
+
+#         causes[h] = detect_causes(vals, baseline)
+
+#     # ───── HEALTH ─────
+#     health_input = {h:{} for h in ["1h","3h","6h"]}
+
+#     for p in pollutant_preds:
+#         for h in health_input:
+#             health_input[h][p] = pollutant_preds[p][h]
+
+#     health_risk = compute_health_risk(health_input)
+
+#     # ───── SOLUTIONS ─────
+#     solutions = generate_solutions(region, predictions, causes, health_risk)
+
+#     alerts = generate_alerts(pred_1h, pred_3h, pred_6h, health_risk)
+
+#     cursor.close()
+#     conn.close()
+
+#     return JSONResponse(content={
+#         "region": region,
+#         "prediction_time": str(timestamp),
+#         "predicted_aqi": predictions,
+#         "predicted_pollutants": pollutant_preds,
+#         "causes": causes,
+#         "health_risk": health_risk,
+#         "alerts": alerts,
+#         "solutions": solutions
+#     })
+
+
+
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+
+
+
 from db import get_connection
-from feature_engine import build_features, add_time_features, add_categorical_features
+
 from model import (
-    model_1h, model_3h, model_6h,
     pollutant_models,
     scaler, all_features, num_features,
-    POLLUTANT_NAME_MAP   
+    POLLUTANT_NAME_MAP
 )
 
+from uncertainty_engine import simulate_predictions, compute_uncertainty_range
 from cause_engine import detect_causes
-
 from health_data import compute_health_risk
+from solution_engine import generate_solutions
 
 import pandas as pd
 import numpy as np
+import json
+from datetime import datetime
+import os
 
 app = FastAPI()
 
-# ── CONSTANTS ───────────────────────────────────────────────────────
-pollutants = ["PM2.5", "PM10", "NO2", "CO", "O3"]
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+BASE_DIR = os.path.dirname(__file__)
+
+def load_json(path):
+    with open(os.path.join(BASE_DIR, path)) as f:
+        return json.load(f)
+
+ALERT_CONFIG = load_json("data/alert_config.json")
 
 
-# ── ALERT ENGINE (TEMP — WILL IMPROVE LATER) ───────────────────────
+# ───────────────── ALERT ENGINE ─────────────────
 def generate_alerts(pred_1h, pred_3h, pred_6h, health_risk):
-    """
-    Data-driven alert system using trend + health impact
-    """
 
     alerts = []
 
-    # --- Trend detection ---
     delta_1_3 = pred_3h - pred_1h
     delta_3_6 = pred_6h - pred_3h
 
-    # --- Health severity ---
-    severity_map = {
-        "Minimal": 0,
-        "Mild": 1,
-        "Moderate": 2,
-        "Severe": 3
-    }
+    severity_map = ALERT_CONFIG["severity_levels"]
+    threshold = ALERT_CONFIG["thresholds"]["rapid_change"]
 
-    severity_1h = severity_map[health_risk["1h"]["interpretation"]["risk_level"]]
     severity_3h = severity_map[health_risk["3h"]["interpretation"]["risk_level"]]
     severity_6h = severity_map[health_risk["6h"]["interpretation"]["risk_level"]]
 
-    # --- Alert logic (data-driven relationships) ---
-
-    # Rapid deterioration
-    if delta_1_3 > 20 or delta_3_6 > 20:
+    if delta_1_3 > threshold or delta_3_6 > threshold:
         alerts.append("Rapid deterioration in air quality expected")
 
-    # Sustained severe health risk
-    if severity_3h >= 2 or severity_6h >= 2:
-        alerts.append("Elevated health risk expected in coming hours")
+    if severity_3h >= ALERT_CONFIG["thresholds"]["health_severity_threshold"]:
+        alerts.append("Elevated health risk expected")
 
-    # Peak warning
-    if pred_6h > pred_3h and pred_3h > pred_1h:
+    if pred_6h > pred_3h > pred_1h:
         alerts.append("Air quality continuously worsening")
 
     return alerts
 
-# ── MAIN PREDICTION API ─────────────────────────────────────────────
-@app.get("/predict")
-def predict(region: str):
 
-    # ── STEP 1: DB FETCH ─────────────────────────────────────────────
+# ───────────────── CORE PIPELINE (NO LOGIC CHANGE) ─────────────────
+def run_full_pipeline(region: str):
+
+    if not region:
+        return {"error": "Region required"}
+
     conn = get_connection()
     cursor = conn.cursor()
 
+    # STEP 1: GET PRECOMPUTED AQI
+    cursor.execute("""
+        SELECT timestamp, pred_1h, pred_3h, pred_6h
+        FROM predictions
+        WHERE region = %s
+        ORDER BY timestamp DESC
+        LIMIT 1
+    """, (region,))
+
+    row = cursor.fetchone()
+
+    if not row:
+        return {"error": "No predictions available yet"}
+
+    timestamp, pred_1h, pred_3h, pred_6h = row
+
+    predictions = {
+        "1h": float(pred_1h),
+        "3h": float(pred_3h),
+        "6h": float(pred_6h)
+    }
+
+    # STEP 2: FETCH RECENT DATA
     cursor.execute("""
         SELECT *
         FROM aqi_data
         WHERE region = %s
         ORDER BY datetime DESC
-        LIMIT 24
+        LIMIT 80
     """, (region,))
 
     rows = cursor.fetchall()
 
-    # ── STEP 2: VALIDATION ───────────────────────────────────────────
-    if len(rows) < 24:
-        cursor.close()
-        conn.close()
-        return {"error": "Not enough data yet"}
+    if len(rows) < 10:
+        return {"error": "Not enough data for analysis"}
 
-    # reverse → oldest → latest
     rows = rows[::-1]
 
-    # ── STEP 3: STRUCTURE DATA ──────────────────────────────────────
-    rows = [
-        {
-            "datetime": r[1],
-            "pm25": r[3],
-            "pm10": r[4],
-            "no2": r[5],
-            "co": r[6],
-            "o3": r[7],
-            "area_type": r[8]
-        }
-        for r in rows
-    ]
+    df = pd.DataFrame([{
+        "Datetime_IST": r[1],
+        "PM2.5 (µg/m³)": r[3],
+        "PM10 (µg/m³)": r[4],
+        "NO2 (µg/m³)": r[5],
+        "CO (mg/m³)": r[6],
+        "Ozone (µg/m³)": r[7],
+        "Area_Type": r[8],
+        "Region": r[2]
+    } for r in rows])
 
-    latest = rows[-1]
+    df["Datetime_IST"] = pd.to_datetime(df["Datetime_IST"])
 
-    from datetime import datetime
+    # BASIC FEATURES
+    df["PM25_roll6h_mean"] = df["PM2.5 (µg/m³)"].rolling(6).mean()
+    df["PM10_roll6h_mean"] = df["PM10 (µg/m³)"].rolling(6).mean()
 
-    dt = latest["datetime"]
-    if isinstance(dt, str):
-        dt = datetime.fromisoformat(dt)
+    df = df.fillna(method="bfill")
+    latest = df.iloc[-1]
 
-    # ── STEP 4: FEATURE ENGINEERING ──────────────────────────────────
-    features = build_features(rows)
+    # MODEL INPUT
+    df_model = pd.get_dummies(df, columns=["Area_Type", "Region"], drop_first=True)
 
-    features = add_time_features(features, dt)
+    for col in all_features:
+        if col not in df_model.columns:
+            df_model[col] = 0
 
-    features = add_categorical_features(
-        features,
-        region,
-        dt,
-        latest["area_type"],
-        all_features
-    )
+    df_model = df_model[all_features]
+    df_model[num_features] = scaler.transform(df_model[num_features])
 
-    # ── STEP 5: FEATURE VALIDATION ───────────────────────────────────
-    missing = [col for col in all_features if col not in features]
-    if missing:
-        cursor.close()
-        conn.close()
-        return {"error": f"Missing features: {missing[:5]}"}
+    df_model = df_model.tail(1)
 
-    # ── STEP 6: PREPARE INPUT ────────────────────────────────────────
-    df = pd.DataFrame([
-        {col: features.get(col, 0) for col in all_features}
-    ])
-
-    df[num_features] = scaler.transform(df[num_features].fillna(0))
-
-    # ── STEP 7: AQI PREDICTIONS ─────────────────────────────────────
-    pred_1h = float(np.clip(model_1h.predict(df), 0, 500)[0])
-    pred_3h = float(np.clip(model_3h.predict(df), 0, 500)[0])
-    pred_6h = float(np.clip(model_6h.predict(df), 0, 500)[0])
-
-    # ── STEP 8: POLLUTANT PREDICTIONS ───────────────────────────────
-    
-    # ── STEP 8: POLLUTANT PREDICTIONS ───────────────────────────────
-
-    
-
+    # POLLUTANTS
     pollutant_preds = {}
 
-    for display_name, model_key in POLLUTANT_NAME_MAP.items():
-        pollutant_preds[display_name] = {
-            "1h": float(pollutant_models[model_key]["1h"].predict(df)[0]),
-            "3h": float(pollutant_models[model_key]["3h"].predict(df)[0]),
-            "6h": float(pollutant_models[model_key]["6h"].predict(df)[0]),
+    for name, key in POLLUTANT_NAME_MAP.items():
+        pollutant_preds[name] = {
+            "1h": float(pollutant_models[key]["1h"].predict(df_model)[0]),
+            "3h": float(pollutant_models[key]["3h"].predict(df_model)[0]),
+            "6h": float(pollutant_models[key]["6h"].predict(df_model)[0]),
         }
-    # ── STEP 8.5: RESTRUCTURE FOR HEALTH ENGINE ───────────────────────
 
-    health_input = {
-        "1h": {},
-        "3h": {},
-        "6h": {}
-    }
-
-    for pollutant, values in pollutant_preds.items():
-        health_input["1h"][pollutant] = values["1h"]
-        health_input["3h"][pollutant] = values["3h"]
-        health_input["6h"][pollutant] = values["6h"]
-
-
-    
-    # ── STEP 9: CAUSE DETECTION (DATA-DRIVEN) ────────────────
-
-
+    # CAUSES
     causes = {}
+    for h in ["1h","3h","6h"]:
+        vals = {p: pollutant_preds[p][h] for p in pollutant_preds}
 
-    for horizon in ["1h", "3h", "6h"]:
-
-        values = {
-            "PM2.5": pollutant_preds["PM2.5"][horizon],
-            "PM10": pollutant_preds["PM10"][horizon],
-            "NO2": pollutant_preds["NO2"][horizon],
-            "CO": pollutant_preds["CO"][horizon],
-            "O3": pollutant_preds["O3"][horizon],
+        baseline = {
+            "PM2.5": latest["PM25_roll6h_mean"],
+            "PM10": latest["PM10_roll6h_mean"],
+            "NO2": latest["NO2 (µg/m³)"],
+            "CO": latest["CO (mg/m³)"],
+            "O3": latest["Ozone (µg/m³)"],
         }
 
-        cause = detect_causes(values)
+        causes[h] = detect_causes(vals, baseline)
 
-        causes[horizon] = cause
+    # HEALTH
+    health_input = {h:{} for h in ["1h","3h","6h"]}
+
+    for p in pollutant_preds:
+        for h in health_input:
+            health_input[h][p] = pollutant_preds[p][h]
 
     health_risk = compute_health_risk(health_input)
-    # ── STEP 9: ALERTS ──────────────────────────────────────────────
+
+    # SOLUTIONS
+    solutions = generate_solutions(region, predictions, causes, health_risk)
+
     alerts = generate_alerts(pred_1h, pred_3h, pred_6h, health_risk)
 
-    # ── STEP 10: CLEANUP ────────────────────────────────────────────
     cursor.close()
     conn.close()
 
-    # ── STEP 10.5: HEALTH ENGINE ─────────────────────────────────────
-    for horizon in ["1h", "3h", "6h"]:
-        primary = causes[horizon]["primary_source"]["source"]
-        secondary = causes[horizon]["secondary_source"]
+    return {
+        "region": region,
+        "prediction_time": str(timestamp),
+        "predicted_aqi": predictions,
+        "predicted_pollutants": pollutant_preds,
+        "causes": causes,
+        "health_risk": health_risk,
+        "alerts": alerts,
+        "solutions": solutions
+    }
 
-        pollutant = health_risk[horizon]["dominant_pollutant"]
 
-        if secondary:
-            secondary_name = secondary["source"]
-            summary = f"{primary} (primary) and {secondary_name} (secondary) contributing to elevated {pollutant}"
-        else:
-            summary = f"{primary} contributing to elevated {pollutant}"
+# ───────────────── MAIN ENDPOINTS ─────────────────
 
-        health_risk[horizon]["cause_summary"] = summary
-    
+@app.get("/predict")
+def predict(region: str):
+    result = run_full_pipeline(region)
+    return JSONResponse(content=result)
 
-    # ── STEP 11: RESPONSE ───────────────────────────────────────────
-    from fastapi.responses import JSONResponse
 
-    return JSONResponse(content={
-    "region": region,
-    "prediction_time": str(dt),
-    "predicted_aqi": {
-    "1h": pred_1h,
-    "3h": pred_3h,
-    "6h": pred_6h
-},
-    "predicted_pollutants": pollutant_preds,
-    "causes": causes,
-    "health_risk": health_risk,
-    "alerts": alerts
-})
+@app.get("/dashboard")
+def dashboard(region: str):
+    result = run_full_pipeline(region)
+    return JSONResponse(content=result)
+
+
+# ───────────────── SPLIT ENDPOINTS ─────────────────
+
+@app.get("/aqi/forecast")
+def get_forecast(region: str):
+    result = run_full_pipeline(region)
+    return {
+        "region": result["region"],
+        "prediction_time": result["prediction_time"],
+        "predicted_aqi": result["predicted_aqi"]
+    }
+
+
+@app.get("/pollutants")
+def get_pollutants(region: str):
+    result = run_full_pipeline(region)
+    return result["predicted_pollutants"]
+
+
+@app.get("/causes")
+def get_causes(region: str):
+    result = run_full_pipeline(region)
+    return result["causes"]
+
+
+@app.get("/health")
+def get_health(region: str):
+    result = run_full_pipeline(region)
+    return result["health_risk"]
+
+
+@app.get("/solutions")
+def get_solutions(region: str):
+    result = run_full_pipeline(region)
+    return result["solutions"]
+
+
+@app.get("/alerts")
+def get_alerts(region: str):
+    result = run_full_pipeline(region)
+    return result["alerts"]

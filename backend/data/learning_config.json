@@ -1,0 +1,11 @@
+{
+  "aggregation_method": "mean",
+  "minimum_samples_required": 1,
+  "value_source": {
+    "before_key": "before",
+    "after_key": "after"
+  },
+  "selection_policy": {
+    "use_learned_when_available": true
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "traffic_emission": { "prior": 0.35 },
+  "road_dust": { "prior": 0.25 },
+  "biomass_burning": { "prior": 0.2 },
+  "industrial": { "prior": 0.15 },
+  "secondary_ozone": { "prior": 0.05 }
+}

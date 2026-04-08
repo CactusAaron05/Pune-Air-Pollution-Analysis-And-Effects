@@ -1,0 +1,11 @@
+{
+  "1h": {
+    "allowed_action_types": ["short"]
+  },
+  "3h": {
+    "allowed_action_types": ["short"]
+  },
+  "6h": {
+    "allowed_action_types": ["short", "long"]
+  }
+}

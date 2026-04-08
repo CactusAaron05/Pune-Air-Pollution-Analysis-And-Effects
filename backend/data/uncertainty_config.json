@@ -1,0 +1,5 @@
+{
+  "num_samples": 100,
+  "noise_model": "gaussian",
+  "noise_std_fraction": 0.05
+}

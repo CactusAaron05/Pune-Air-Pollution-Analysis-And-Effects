@@ -1,0 +1,267 @@
+{
+  "traffic_emission": {
+    "short_term": [
+      {
+        "action": "Enforce no-entry time windows for heavy-duty diesel trucks in dense urban corridors using ANPR-based monitoring",
+        "effectiveness": 0.78,
+        "constraints": {
+          "infrastructure_level": ["medium"],
+          "enforcement_capacity": ["high"],
+          "road_capacity": ["high"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "EPA diesel control strategies show 20–40% PM reduction from restricting HDV access"
+      },
+      {
+        "action": "Deploy corridor-level synchronized traffic signals to minimize stop-go cycles and idling emissions",
+        "effectiveness": 0.72,
+        "constraints": {
+          "infrastructure_level": ["medium"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "World Bank ITS programs show 15–30% emission reduction from signal optimization"
+      },
+      {
+        "action": "Implement temporary congestion pricing during high AQI episodes in core zones",
+        "effectiveness": 0.8,
+        "constraints": {
+          "infrastructure_level": ["high"],
+          "enforcement_capacity": ["high"],
+          "road_capacity": ["high"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "OECD congestion pricing reduces traffic emissions by 20–40%"
+      },
+      {
+        "action": "Restrict on-road parking on arterial roads to improve traffic flow and reduce idling",
+        "effectiveness": 0.68,
+        "constraints": {
+          "infrastructure_level": ["low"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "World Bank urban mobility studies show 10–25% emission reduction from improved flow"
+      },
+      {
+        "action": "Mandate periodic pollution under control (PUC) checks with digital verification for commercial fleets",
+        "effectiveness": 0.75,
+        "constraints": {
+          "infrastructure_level": ["medium"],
+          "enforcement_capacity": ["high"],
+          "road_capacity": ["low"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "NCAP indicates 20–30% emission reduction from strict vehicle inspection"
+      }
+    ],
+    "long_term": [
+      {
+        "action": "Electrify public bus fleets with depot charging and grid integration",
+        "effectiveness": 0.92,
+        "constraints": {
+          "infrastructure_level": ["high"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["medium"]
+        },
+        "evidence": "World Bank and UNEP report 60–90% emission reduction from electric buses"
+      },
+      {
+        "action": "Develop metro and BRT corridors integrated with feeder systems to shift modal share",
+        "effectiveness": 0.9,
+        "constraints": {
+          "infrastructure_level": ["high"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["high"]
+        },
+        "evidence": "World Bank transit systems reduce transport emissions by 40–70%"
+      },
+      {
+        "action": "Implement city-wide low emission zones requiring Euro VI or EV compliance",
+        "effectiveness": 0.88,
+        "constraints": {
+          "infrastructure_level": ["medium"],
+          "enforcement_capacity": ["high"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "EU and UNEP studies show 30–60% PM reduction in LEZ zones"
+      },
+      {
+        "action": "Promote non-motorized transport infrastructure including protected cycle lanes",
+        "effectiveness": 0.76,
+        "constraints": {
+          "infrastructure_level": ["medium"],
+          "enforcement_capacity": ["low"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["medium"]
+        },
+        "evidence": "WHO urban mobility shows 15–35% reduction in vehicular emissions"
+      },
+      {
+        "action": "Implement transit-oriented development zoning to reduce travel distances",
+        "effectiveness": 0.87,
+        "constraints": {
+          "infrastructure_level": ["high"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["high"]
+        },
+        "evidence": "OECD land-use policies reduce transport emissions by 30–50%"
+      }
+    ]
+  },
+
+  "road_dust": {
+    "short_term": [
+      {
+        "action": "Deploy vacuum-based mechanical road sweepers on major corridors twice daily",
+        "effectiveness": 0.74,
+        "constraints": {
+          "infrastructure_level": ["medium"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["high"]
+        },
+        "evidence": "NCAP shows 20–40% PM10 reduction from mechanical sweeping"
+      },
+      {
+        "action": "Mandate water spraying at construction and demolition sites every 4 hours",
+        "effectiveness": 0.7,
+        "constraints": {
+          "infrastructure_level": ["low"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["low"],
+          "construction_activity": ["high"]
+        },
+        "evidence": "CPCB and NCAP show 20–35% dust suppression"
+      },
+      {
+        "action": "Enforce covering of construction materials during transport using tarpaulin",
+        "effectiveness": 0.68,
+        "constraints": {
+          "infrastructure_level": ["low"],
+          "enforcement_capacity": ["high"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["high"]
+        },
+        "evidence": "UNEP dust mitigation shows 15–25% reduction"
+      }
+    ],
+    "long_term": [
+      {
+        "action": "Pave all unpaved roads and shoulders to prevent dust resuspension",
+        "effectiveness": 0.88,
+        "constraints": {
+          "infrastructure_level": ["high"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["high"]
+        },
+        "evidence": "World Bank studies show 40–70% PM reduction"
+      },
+      {
+        "action": "Develop green buffers and roadside vegetation barriers",
+        "effectiveness": 0.75,
+        "constraints": {
+          "infrastructure_level": ["medium"],
+          "enforcement_capacity": ["low"],
+          "road_capacity": ["low"],
+          "construction_activity": ["medium"]
+        },
+        "evidence": "WHO urban greening reduces particulate exposure by 20–40%"
+      }
+    ]
+  },
+
+  "biomass_burning": {
+    "short_term": [
+      {
+        "action": "Strictly prohibit open waste burning with ward-level enforcement squads",
+        "effectiveness": 0.85,
+        "constraints": {
+          "infrastructure_level": ["low"],
+          "enforcement_capacity": ["high"],
+          "road_capacity": ["low"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "WHO shows 50–80% PM reduction from eliminating open burning"
+      }
+    ],
+    "long_term": [
+      {
+        "action": "Universal adoption of LPG/electric cooking through subsidy targeting",
+        "effectiveness": 0.93,
+        "constraints": {
+          "infrastructure_level": ["medium"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["low"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "UNEP clean cooking reduces emissions by 70–90%"
+      }
+    ]
+  },
+
+  "industrial": {
+    "short_term": [
+      {
+        "action": "Mandate continuous emission monitoring systems (CEMS) with real-time compliance penalties",
+        "effectiveness": 0.86,
+        "constraints": {
+          "infrastructure_level": ["high"],
+          "enforcement_capacity": ["high"],
+          "road_capacity": ["low"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "EPA shows 50–80% emission control improvement"
+      }
+    ],
+    "long_term": [
+      {
+        "action": "Transition to cleaner fuels such as natural gas or electrification in industrial processes",
+        "effectiveness": 0.91,
+        "constraints": {
+          "infrastructure_level": ["high"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["low"],
+          "construction_activity": ["medium"]
+        },
+        "evidence": "UNEP shows 60–90% emission reduction"
+      }
+    ]
+  },
+
+  "secondary_ozone": {
+    "short_term": [
+      {
+        "action": "Control VOC emissions at fuel stations using vapor recovery systems",
+        "effectiveness": 0.76,
+        "constraints": {
+          "infrastructure_level": ["medium"],
+          "enforcement_capacity": ["medium"],
+          "road_capacity": ["low"],
+          "construction_activity": ["low"]
+        },
+        "evidence": "EPA vapor recovery reduces VOC emissions by 30–50%"
+      }
+    ],
+    "long_term": [
+      {
+        "action": "Reduce NOx emissions through electrification of transport and industrial boilers",
+        "effectiveness": 0.9,
+        "constraints": {
+          "infrastructure_level": ["high"],
+          "enforcement_capacity": ["high"],
+          "road_capacity": ["medium"],
+          "construction_activity": ["medium"]
+        },
+        "evidence": "UNEP atmospheric chemistry shows 40–70% ozone reduction"
+      }
+    ]
+  }
+}

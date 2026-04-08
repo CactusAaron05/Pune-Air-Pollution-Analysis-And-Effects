@@ -1,0 +1,83 @@
+{
+  "Alandi": {
+    "area_type": "peri-urban religious town",
+    "infrastructure_level": "medium",
+    "road_capacity": "low",
+    "public_transport": "limited",
+    "enforcement_capacity": "low",
+    "construction_activity": "medium",
+    "population_density": "medium"
+  },
+  "Bhosari": {
+    "area_type": "industrial manufacturing cluster",
+    "infrastructure_level": "high",
+    "road_capacity": "high",
+    "public_transport": "moderate",
+    "enforcement_capacity": "medium",
+    "construction_activity": "high",
+    "population_density": "high"
+  },
+  "Bhumkar Nagar": {
+    "area_type": "rapidly developing residential suburb",
+    "infrastructure_level": "medium",
+    "road_capacity": "medium",
+    "public_transport": "limited",
+    "enforcement_capacity": "low",
+    "construction_activity": "high",
+    "population_density": "medium"
+  },
+  "Hadapsar": {
+    "area_type": "mixed IT-industrial-residential zone",
+    "infrastructure_level": "high",
+    "road_capacity": "high",
+    "public_transport": "high",
+    "enforcement_capacity": "medium",
+    "construction_activity": "high",
+    "population_density": "high"
+  },
+  "Karve Road": {
+    "area_type": "urban arterial commercial corridor",
+    "infrastructure_level": "high",
+    "road_capacity": "high",
+    "public_transport": "high",
+    "enforcement_capacity": "high",
+    "construction_activity": "medium",
+    "population_density": "high"
+  },
+  "Katraj Dairy": {
+    "area_type": "transport-industrial junction",
+    "infrastructure_level": "medium",
+    "road_capacity": "high",
+    "public_transport": "moderate",
+    "enforcement_capacity": "medium",
+    "construction_activity": "high",
+    "population_density": "medium"
+  },
+  "Mhada Colony": {
+    "area_type": "high-density affordable housing",
+    "infrastructure_level": "medium",
+    "road_capacity": "low",
+    "public_transport": "moderate",
+    "enforcement_capacity": "low",
+    "construction_activity": "medium",
+    "population_density": "high"
+  },
+  "Panchawati Pashan": {
+    "area_type": "low-density green residential",
+    "infrastructure_level": "high",
+    "road_capacity": "medium",
+    "public_transport": "moderate",
+    "enforcement_capacity": "medium",
+    "construction_activity": "low",
+    "population_density": "medium"
+  },
+  "Transport Nagar Nigdi": {
+    "area_type": "logistics and freight hub",
+    "infrastructure_level": "high",
+    "road_capacity": "high",
+    "public_transport": "low",
+    "enforcement_capacity": "medium",
+    "construction_activity": "medium",
+    "population_density": "medium"
+  }
+}

@@ -1,6 +1,7 @@
 import json
 import os
-from datetime import datetime
+
+from bayesian_engine import bayesian_inference
 
 # Load pattern dataset
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "source_patterns.json")
@@ -8,39 +9,50 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "source_patterns.jso
 with open(DATA_PATH, "r") as f:
     SOURCE_PATTERNS = json.load(f)
 
+if not SOURCE_PATTERNS:
+    raise ValueError("source_patterns.json is empty")
 
-def detect_causes(predictions):
 
-    total = sum(predictions.values()) + 1e-6
-    normalized = {k: v / total for k, v in predictions.items()}
+def detect_causes(predictions, rolling_baseline):
 
-    scores = []
+    if not predictions:
+        raise ValueError("predictions cannot be empty")
 
-    for source, config in SOURCE_PATTERNS.items():
-        pollutants = config["pollutants"]
+    if not rolling_baseline:
+        raise ValueError("rolling_baseline cannot be empty")
 
-        score = sum(normalized.get(p, 0) for p in pollutants)
+    spike_ratios = {}
 
-        scores.append({
-            "source": source,
-            "description": config["description"],
-            "score": score
-        })
+    for pollutant, value in predictions.items():
 
-    top_sources = sorted(scores, key=lambda x: x["score"], reverse=True)
+        if pollutant not in rolling_baseline:
+            raise ValueError(f"Missing baseline for pollutant: {pollutant}")
 
-    primary = top_sources[0]
-    secondary = top_sources[1] if len(top_sources) > 1 else None
+        baseline = rolling_baseline[pollutant]
+
+        if baseline <= 0:
+            raise ValueError(f"Invalid baseline for pollutant: {pollutant}")
+
+        spike_ratios[pollutant] = value / baseline
+
+    if not spike_ratios:
+        raise ValueError("No spike ratios computed")
+
+    ranked = bayesian_inference(spike_ratios, SOURCE_PATTERNS)
+
+    if len(ranked) < 2:
+        raise ValueError("Insufficient sources for inference")
+
+    primary = ranked[0]
+    secondary = ranked[1]
 
     return {
         "primary_source": {
             "source": primary["source"],
-            "description": primary["description"],
-            "confidence": round(primary["score"], 3)
+            "confidence": primary["probability"]
         },
         "secondary_source": {
             "source": secondary["source"],
-            "description": secondary["description"],
-            "confidence": round(secondary["score"], 3)
-        } if secondary else None
+            "confidence": secondary["probability"]
+        }
     }

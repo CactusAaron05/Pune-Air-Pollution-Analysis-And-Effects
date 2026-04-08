@@ -1,0 +1,994 @@
+
+/* 🔹 RESET */
+
+/* 🔥 DESIGN SYSTEM */
+
+/* SPACING SCALE */
+:root {
+  --space-xs: 6px;
+  --space-sm: 10px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  --radius: 12px;
+  --card-bg: #1e293b;
+  --border: #334155;
+}
+
+/* TYPOGRAPHY */
+h1 { font-size: 28px; }
+h2 { font-size: 22px; }
+h3 { font-size: 18px; }
+h4 { font-size: 16px; }
+
+.text-small { font-size: 13px; opacity: 0.8; }
+.text-muted { opacity: 0.7; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+/* 🔹 DASHBOARD */
+.dashboard {
+  padding: var(--space-lg);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* 🔹 HERO */
+.dashboard-hero {
+  margin-bottom: 30px;
+}
+
+.region-selector {
+  margin-bottom: 15px;
+}
+
+.region-selector select {
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+}
+
+.hero-content {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.hero-aqi {
+  flex: 1;
+}
+
+.hero-alerts {
+  flex: 1;
+}
+
+/* 🔹 AQI CARD */
+.aqi-card {
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border-radius: 15px;
+  padding: 30px;
+  text-align: center;
+}
+
+.aqi-card-title {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.aqi-card-value {
+  font-size: 60px;
+  font-weight: bold;
+}
+
+/* 🔹 FORECAST */
+.dashboard-forecast {
+  margin-bottom: 30px;
+}
+
+.aqi-trend {
+  display: flex;
+  gap: 15px;
+}
+
+.aqi-trend-card {
+  flex: 1;
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.aqi-trend-label {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.aqi-trend-value {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* 🔹 TABS */
+.tabs-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 10px 15px;
+  background: #1e293b;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #3b82f6;
+}
+
+/* 🔹 POLLUTANTS */
+.pollutants {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.pollutant-card {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.pollutant-name {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* 🔹 CAUSES */
+.causes {
+  display: flex;
+  gap: 15px;
+}
+
+.cause-card {
+  flex: 1;
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.cause-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.cause-item {
+  margin-bottom: 10px;
+}
+
+/* 🔹 HEALTH */
+.health {
+  display: flex;
+  gap: 15px;
+}
+
+.health-card {
+  flex: 1;
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.health-risk-value {
+  font-weight: bold;
+}
+
+/* 🔹 SOLUTIONS */
+.solutions {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.solutions-section {
+  margin-top: 20px;
+}
+
+.solutions-list-item {
+  margin-bottom: 10px;
+}
+
+/* 🔹 ALERTS */
+.alerts {
+  background: #7f1d1d;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.alert-item {
+  margin-bottom: 5px;
+}
+
+/* 🔹 LOADING */
+.loading,
+.error {
+  text-align: center;
+  margin-top: 50px;
+}
+
+
+/* 🔥 AQI COLORS */
+
+.aqi-good {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.aqi-moderate {
+  background: linear-gradient(135deg, #eab308, #facc15);
+}
+
+.aqi-unhealthy {
+  background: linear-gradient(135deg, #f97316, #fb923c);
+}
+
+.aqi-very-unhealthy {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+}
+
+.aqi-hazardous {
+  background: linear-gradient(135deg, #7e22ce, #a855f7);
+}
+
+.cause-image img,
+.solutions-image img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+
+/* 🔥 CAUSES IMPROVED DESIGN */
+
+.causes {
+  display: flex;
+  gap: 20px;
+}
+
+.cause-card {
+  flex: 1;
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.cause-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+/* IMAGE */
+.cause-image {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.cause-image img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* OVERLAY */
+.cause-overlay {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px 10px;
+  border-radius: 6px;
+
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* SECONDARY */
+.cause-secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+
+/* 🔥 CAUSES FINAL DESIGN */
+
+.causes {
+  display: flex;
+  gap: 20px;
+}
+
+.cause-card {
+  flex: 1;
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* HEADER */
+.cause-header {
+  font-weight: bold;
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+/* PRIMARY */
+.cause-primary {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cause-icon {
+  font-size: 24px;
+}
+
+.cause-info {
+  flex: 1;
+}
+
+.cause-label {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* CONFIDENCE BAR */
+.cause-confidence-bar {
+  width: 100%;
+  height: 6px;
+  background: #334155;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.cause-confidence-fill {
+  height: 100%;
+  background: #3b82f6;
+}
+
+/* SECONDARY */
+.cause-secondary {
+  font-size: 14px;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
+/* RAW JSON */
+.cause-raw-toggle button {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.cause-raw {
+  font-size: 12px;
+  background: #0f172a;
+  padding: 10px;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+
+/* 🔥 ALERTS PREMIUM DESIGN */
+
+.alerts {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* HEADER */
+.alerts-header {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+/* ALERT ITEMS */
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alert-item {
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* STATES */
+.alert-item.critical {
+  background: rgba(220, 38, 38, 0.2);
+  border-left: 4px solid #dc2626;
+}
+
+.alert-item.neutral {
+  background: rgba(34, 197, 94, 0.2);
+  border-left: 4px solid #22c55e;
+}
+
+/* TOGGLE */
+.alerts-toggle {
+  margin-top: 12px;
+}
+
+.alerts-toggle button {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+}
+
+/* RAW VIEW */
+.alerts-raw {
+  margin-top: 10px;
+  background: #0f172a;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.alerts-raw-item {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.alerts-raw-index {
+  color: #64748b;
+}
+
+.alerts-raw-text {
+  color: #e2e8f0;
+}
+
+/* 🔥 AQI HERO (NEW) */
+
+.aqi-hero {
+  border-radius: 16px;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* MAIN */
+.aqi-hero-main {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.aqi-hero-value {
+  font-size: 72px;
+  font-weight: bold;
+}
+
+.aqi-hero-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.aqi-hero-label {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.aqi-hero-trend {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* TIMELINE */
+.aqi-hero-timeline {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.timeline-item {
+  flex: 1;
+  background: rgba(0,0,0,0.2);
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.timeline-label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.timeline-value {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* 🔥 ACCORDION SYSTEM */
+
+.accordion-section {
+  background: #1e293b;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.accordion-header:hover {
+  background: #334155;
+}
+
+.accordion-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.accordion-icon {
+  font-size: 18px;
+}
+
+.accordion-title {
+  font-weight: 600;
+}
+
+.accordion-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.accordion-summary {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.accordion-arrow {
+  font-size: 12px;
+}
+
+.accordion-content {
+  padding: 15px;
+  border-top: 1px solid #334155;
+}
+
+.pollutant-card.dominant {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 10px rgba(59,130,246,0.3);
+}
+
+.pollutant-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+
+/* 🔥 BETTER VISUAL HIERARCHY */
+
+.pollutant-header {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* BAR */
+.pollutant-bar-container {
+  width: 100%;
+  height: 8px;
+  background: #334155;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.pollutant-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+/* PERCENT */
+.pollutant-percent {
+  font-size: 13px;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+/* VALUES */
+.pollutant-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+/* 🔥 DOMINANT */
+.pollutant-card.dominant {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 12px rgba(59,130,246,0.3);
+}
+
+/* 🔥 INACTIVE (0%) */
+.pollutant-card.inactive {
+  opacity: 0.5;
+}
+
+/* 🔥 CAUSES FINAL UPGRADE */
+
+.cause-main {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.cause-icon {
+  font-size: 28px;
+}
+
+.cause-label {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* CONFIDENCE TEXT */
+.cause-confidence-text {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* PRIMARY */
+.cause-card.primary {
+  border: 2px solid #3b82f6;
+}
+
+/* SECONDARY */
+.cause-card.secondary {
+  opacity: 0.9;
+}
+
+/* SECONDARY BAR COLOR */
+.cause-confidence-fill.secondary {
+  background: #64748b;
+}
+
+/* 🔥 HEALTH MAIN CARD */
+
+.health-main {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.health-risk-level {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.health-risk-increase {
+  font-size: 18px;
+  color: #f97316;
+  margin-bottom: 10px;
+}
+
+.health-message {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* 🔥 TREND */
+
+.health-trend {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.health-trend-item {
+  background: #334155;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* 🔥 TAGS */
+
+.health-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.health-tag {
+  background: #334155;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+
+/* 🔥 STRUCTURE */
+
+.solutions {
+  display: flex;
+  flex-direction: column;
+}
+
+/* CONTEXT */
+
+.solutions-context {
+  margin-bottom: 20px;
+}
+
+.solutions-main {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.solutions-why {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* BLOCKS */
+
+.solutions-block {
+  margin-bottom: 25px;
+}
+
+.solutions-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* LIST */
+
+.solutions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ITEMS */
+
+.solution-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* PRIMARY */
+
+.solution-item.primary {
+  background: rgba(249, 115, 22, 0.2);
+  border-left: 4px solid #f97316;
+}
+
+/* SECONDARY */
+
+.solution-item.secondary {
+  background: rgba(34, 197, 94, 0.15);
+  border-left: 4px solid #22c55e;
+}
+
+/* EMPTY STATE */
+
+.solution-empty {
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+/* ⚠️ VERY IMPORTANT — PREVENT HIDING */
+
+.accordion-content {
+  overflow: visible !important;
+  height: auto !important;
+}
+
+
+/* 🔥 GRAPH */
+
+.dashboard-graph {
+  margin-bottom: 30px;
+}
+
+.aqi-graph {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.aqi-graph-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+
+.region-selector {
+  margin-bottom: 20px;
+}
+
+.region-selector label {
+  margin-right: 10px;
+}
+
+.region-selector select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: none;
+}
+
+
+.section {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  border: 1px solid #334155;
+
+  /* 🔥 DEPTH */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  transition: all 0.25s ease;
+}
+
+.section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.35);
+}
+.aqi-graph {
+  background: var(--card-bg);
+  padding: var(--space-lg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.aqi-graph-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+}
+
+
+.health-main {
+  padding: var(--space-md);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-md);
+}
+
+.health-risk-level {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.health-risk-increase {
+  font-size: 18px;
+  margin: 4px 0;
+}
+
+.health-message {
+  font-size: 14px;
+  margin-top: var(--space-sm);
+}
+
+.health-trend {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.health-trend-item {
+  background: #334155;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.health-tags {
+  gap: var(--space-sm);
+}
+
+.solutions-context {
+  margin-bottom: var(--space-md);
+}
+
+.solutions-main {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.solutions-why {
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.solutions-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+}
+
+.solutions-block {
+  margin-bottom: var(--space-lg);
+}
+
+.solution-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.accordion-content.open {
+  max-height: 1000px;
+}
+
+
+.insight-bar {
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  color: white;
+
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  font-size: 14px;
+}
+
+
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+}

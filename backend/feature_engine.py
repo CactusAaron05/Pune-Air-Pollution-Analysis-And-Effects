@@ -23,7 +23,7 @@ def build_features(rows):
     features["PM10_lag6h"] = pm10[-7] if len(pm10) >= 7 else pm10[-1]
     features["PM10_lag24h"] = pm10[-25] if len(pm10) >= 25 else pm10[-1]
 
-    features["PM10_roll6h_mean"] = np.mean(pm10[-6:]) if len(pm25) >= 1 else 0
+    features["PM10_roll6h_mean"] = np.mean(pm10[-6:]) if len(pm10) >= 1 else 0
     features["PM10_roll24h_mean"] = np.mean(pm10[-24:]) if len(pm25) >= 1 else 0
     features["PM10_roll24h_std"] = np.std(pm10[-24:]) if len(pm25) >= 1 else 0
 

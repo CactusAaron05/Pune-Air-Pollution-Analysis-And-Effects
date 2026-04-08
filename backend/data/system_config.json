@@ -1,0 +1,17 @@
+{
+  "severity_weights": {
+    "Minimal": 0.0,
+    "Mild": 0.4,
+    "Moderate": 0.7,
+    "Severe": 1.0
+  },
+
+  "selection_policy": {
+    "max_short_term": 5,
+    "max_long_term": 5
+  },
+
+  "learning_selection_policy": {
+    "use_learned_when_available": true
+  }
+}

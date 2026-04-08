@@ -1,0 +1,7 @@
+{
+  "distribution": "gaussian",
+  "parameters": {
+    "mean_reference": 1.0,
+    "std_dev": 0.5
+  }
+}

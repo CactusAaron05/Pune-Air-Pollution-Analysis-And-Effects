@@ -1,0 +1,9 @@
+{
+  "PM2.5": { "toxicity_weight": 1.0 },
+  "PM10": { "toxicity_weight": 0.75 },
+  "NO2": { "toxicity_weight": 0.7 },
+  "O3": { "toxicity_weight": 0.65 },
+  "CO": { "toxicity_weight": 0.6 },
+
+  "default": { "toxicity_weight": 0.5 }
+}

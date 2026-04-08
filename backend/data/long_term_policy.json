@@ -1,0 +1,7 @@
+{
+  "conditions": {
+    "severity_levels": ["Moderate", "Severe"],
+    "min_confidence": 0.6,
+    "require_secondary": true
+  }
+}
