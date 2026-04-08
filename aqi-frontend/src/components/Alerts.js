@@ -1,58 +1,45 @@
-import { useState } from "react";
-import { AlertTriangle } from "lucide-react";
-function Alerts({ data }) {
-  const [showRaw, setShowRaw] = useState(false);
+import React from "react";
 
-  // 🔥 Normalize data safely
-  let alertsArray = [];
+function classifyAlert(text) {
+  const t = text.toLowerCase();
 
-  if (Array.isArray(data)) {
-    alertsArray = data;
-  } else if (typeof data === "string") {
-    alertsArray = [data];
-  } else if (data) {
-    alertsArray = [JSON.stringify(data)];
+  if (t.includes("worsen") || t.includes("severe") || t.includes("hazard")) {
+    return "critical";
   }
+
+  if (t.includes("improv")) {
+    return "neutral";
+  }
+
+  return "neutral";
+}
+
+function Alerts({ data }) {
+
+  if (!data || data.length === 0) return null;
 
   return (
     <div className="alerts">
 
-      <div className="alerts-header">
-        ⚠️ Alerts
-      </div>
+      <div className="alerts-header">🚨 Alerts</div>
 
       <div className="alerts-list">
 
-        {alertsArray.length === 0 ? (
-          <div className="alert-item neutral">
-            No active alerts
-          </div>
-        ) : (
-          alertsArray.map((alert, index) => (
-            <div key={index} className="alert-item critical">
+        {data.map((alert, i) => {
+
+          const type = classifyAlert(alert);
+
+          return (
+            <div key={i} className={`alert-item ${type}`}>
+              <span style={{ marginRight: "6px" }}>
+                {type === "critical" ? "🚨" : "⚠️"}
+              </span>
               {alert}
             </div>
-          ))
-        )}
+          );
+        })}
 
       </div>
-
-      <div className="alerts-toggle">
-        <button onClick={() => setShowRaw(!showRaw)}>
-          {showRaw ? "Hide Full Data" : "Show Full Data"}
-        </button>
-      </div>
-
-      {showRaw && (
-        <div className="alerts-raw">
-          {alertsArray.map((alert, i) => (
-            <div key={i} className="alerts-raw-item">
-              <span>[{i}]</span>
-              <span>{alert}</span>
-            </div>
-          ))}
-        </div>
-      )}
 
     </div>
   );

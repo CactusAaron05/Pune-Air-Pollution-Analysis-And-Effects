@@ -1,65 +1,56 @@
+import React from "react";
+
 function Pollutants({ data, health }) {
 
-  const contribution = health?.["1h"]?.pollutant_contribution || {};
-  const dominant = health?.["1h"]?.dominant_pollutant;
+  if (!data || !health) return null;
+
+  const h1 = health["1h"];
+
+  const contribution = h1?.pollutant_contribution || {};
+  const dominant = h1?.dominant_pollutant;
+
+  const pollutants = Object.keys(data);
 
   return (
     <div className="pollutants">
 
-      {Object.keys(data).map((key) => {
+      {pollutants.map((key) => {
 
-        const p = data[key];
+        const values = data[key] || {};
 
-        const percent = Math.round(
-          contribution[key] ?? 
-          contribution[key.replace(".", "")] ?? 
-          0
-        );
+        const v1 = values["1h"] ?? 0;
+        const v3 = values["3h"] ?? 0;
+        const v6 = values["6h"] ?? 0;
+
+        const percent = contribution[key] ?? 0;
+
+        const isDominant = key === dominant;
 
         return (
-          <div
-            className={`pollutant-card ${
-              key === dominant ? "dominant" : ""
-            } ${percent === 0 ? "inactive" : ""}`}
-            key={key}
-          >
+          <div key={key} className={`pollutant-card ${isDominant ? "dominant" : ""}`}>
 
-            {/* HEADER */}
             <div className="pollutant-header">
-              {key} {key === dominant && "⭐"}
+              🌫️ {key}
             </div>
 
-            {/* BAR */}
             <div className="pollutant-bar-container">
-              <div
-                className="pollutant-bar"
-                style={{ width: `${percent}%` }}
-              ></div>
+              <div className="pollutant-bar" style={{ width: `${Math.round(percent)}%` }} />
             </div>
 
-            {/* PERCENT */}
             <div className="pollutant-percent">
-              {percent}%
+              {Math.round(percent)}%
             </div>
 
-            {/* VALUES */}
-            <div className="pollutant-values">
+            <div className="pollutant-row">
+              1h: {Math.round(v1)}
+            </div>
 
-              <div className="pollutant-row">
-                <span>+1h</span>
-                <span>{Math.round(p["1h"])}</span>
-              </div>
+            <div className="pollutant-row">
+              3h: {Math.round(v3)}
+            </div>
 
-              <div className="pollutant-row">
-                <span>+3h</span>
-                <span>{Math.round(p["3h"])}</span>
-              </div>
-
-              <div className="pollutant-row">
-                <span>+6h</span>
-                <span>{Math.round(p["6h"])}</span>
-              </div>
-
+            <div className="pollutant-row">
+              6h: {Math.round(v6)}
             </div>
 
           </div>

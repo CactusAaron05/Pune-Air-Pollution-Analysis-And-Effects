@@ -1,44 +1,58 @@
 import numpy as np
+import pandas as pd
 
-def build_features(rows):
-    pm25 = [r["pm25"] for r in rows]
-    pm10 = [r["pm10"] for r in rows]
 
-    features = {}
+def build_features(df_hist):
+    """
+    Fully aligned with training pipeline.
+    Uses ONLY past data (shifted).
+    """
 
-    # SAFE LAGS
-    features["PM25_lag1h"] = pm25[-2] if len(pm25) >= 2 else pm25[-1]
-    features["PM25_lag3h"] = pm25[-4] if len(pm25) >= 4 else pm25[-1]
-    features["PM25_lag6h"] = pm25[-7] if len(pm25) >= 7 else pm25[-1]
-    features["PM25_lag24h"] = pm25[-25] if len(pm25) >= 25 else pm25[-1]
+    df = df_hist.copy()
 
-    # SAFE ROLLING
-    features["PM25_roll6h_mean"] = np.mean(pm25[-6:]) if len(pm25) >= 1 else 0
-    features["PM25_roll6h_std"] = np.std(pm25[-6:]) if len(pm25) >= 1 else 0
+    # ───────── SORT (CRITICAL) ─────────
+    df = df.sort_values("Datetime_IST")
 
-    features["PM25_roll24h_mean"] = np.mean(pm25[-24:]) if len(pm25) >= 1 else 0
-    features["PM25_roll24h_std"] = np.std(pm25[-24:]) if len(pm25) >= 1 else 0
+    # ───────── PM2.5 FEATURES ─────────
+    df["PM25_lag1h"] = df["PM2.5 (µg/m³)"].shift(1)
+    df["PM25_lag3h"] = df["PM2.5 (µg/m³)"].shift(3)
+    df["PM25_lag6h"] = df["PM2.5 (µg/m³)"].shift(6)
+    df["PM25_lag24h"] = df["PM2.5 (µg/m³)"].shift(24)
 
-    # PM10
-    features["PM10_lag6h"] = pm10[-7] if len(pm10) >= 7 else pm10[-1]
-    features["PM10_lag24h"] = pm10[-25] if len(pm10) >= 25 else pm10[-1]
+    df["PM25_roll6h_mean"] = df["PM2.5 (µg/m³)"].shift(1).rolling(6).mean()
+    df["PM25_roll6h_std"] = df["PM2.5 (µg/m³)"].shift(1).rolling(6).std()
 
-    features["PM10_roll6h_mean"] = np.mean(pm10[-6:]) if len(pm10) >= 1 else 0
-    features["PM10_roll24h_mean"] = np.mean(pm10[-24:]) if len(pm25) >= 1 else 0
-    features["PM10_roll24h_std"] = np.std(pm10[-24:]) if len(pm25) >= 1 else 0
+    df["PM25_roll24h_mean"] = df["PM2.5 (µg/m³)"].shift(1).rolling(24).mean()
+    df["PM25_roll24h_std"] = df["PM2.5 (µg/m³)"].shift(1).rolling(24).std()
 
-    # RAW
-    latest = rows[-1]
+    # ───────── PM10 FEATURES ─────────
+    df["PM10_lag6h"] = df["PM10 (µg/m³)"].shift(6)
+    df["PM10_lag24h"] = df["PM10 (µg/m³)"].shift(24)
 
-    features["PM10 (µg/m³)"] = latest["pm10"]
-    features["NO2 (µg/m³)"] = latest["no2"]
-    features["CO (mg/m³)"] = latest["co"]
-    features["Ozone (µg/m³)"] = latest["o3"]
+    df["PM10_roll6h_mean"] = df["PM10 (µg/m³)"].shift(1).rolling(6).mean()
+    df["PM10_roll24h_mean"] = df["PM10 (µg/m³)"].shift(1).rolling(24).mean()
+    df["PM10_roll24h_std"] = df["PM10 (µg/m³)"].shift(1).rolling(24).std()
+
+    # ───────── RAW FEATURES ─────────
+    latest = df.iloc[-1]
+
+    features = {
+        "PM10 (µg/m³)": latest["PM10 (µg/m³)"],
+        "NO2 (µg/m³)": latest["NO2 (µg/m³)"],
+        "CO (mg/m³)": latest["CO (mg/m³)"],
+        "Ozone (µg/m³)": latest["Ozone (µg/m³)"],
+    }
+
+    # ───────── MERGE LAST ROW FEATURES ─────────
+    last_row = df.iloc[-1].to_dict()
+
+    for key in last_row:
+        if key.startswith(("PM25_", "PM10_")):
+            features[key] = last_row[key]
 
     return features
 
 
-# ✅ ADD THIS FUNCTION
 def add_time_features(features, dt):
     hour = dt.hour
     month = dt.month
@@ -54,43 +68,39 @@ def add_time_features(features, dt):
     return features
 
 
-# ✅ ADD THIS FUNCTION
-def add_categorical_features(features, region, dt, area_type, all_features):
+def add_categorical_features(features, df_hist, all_features):
+    """
+    Uses SAME encoding as training
+    """
+
+    latest = df_hist.iloc[-1]
 
     # Initialize all categorical columns
     for col in all_features:
         if col.startswith(("Region_", "Area_", "Season_")):
             features[col] = 0
 
-    # ── Region ─────────────────────────
-    region_col = f"Region_{region}"
+    # Region
+    region_col = f"Region_{latest['Region']}"
     if region_col in all_features:
         features[region_col] = 1
 
-    # ── Area ───────────────────────────
-    if area_type:
-        if "Industrial" in area_type:
-            area = "Industrial"
-        elif "Residential" in area_type:
-            area = "Residential"
-        else:
-            area = "Other"
+    # Area
+    area_col = f"Area_{latest['Area_Type']}"
+    if area_col in all_features:
+        features[area_col] = 1
 
-        area_col = f"Area_{area}"
-        if area_col in all_features:
-            features[area_col] = 1
-
-    # ── Season ─────────────────────────
-    month = dt.month
+    # Season (MATCH TRAINING EXACTLY)
+    month = latest["Datetime_IST"].month
 
     if month in [12, 1, 2]:
         season = "Winter"
     elif month in [3, 4, 5]:
-        season = "Summer"
+        season = "Pre-Monsoon"
     elif month in [6, 7, 8, 9]:
         season = "Monsoon"
     else:
-        season = "PostMonsoon"
+        season = "Post-Monsoon"
 
     season_col = f"Season_{season}"
     if season_col in all_features:

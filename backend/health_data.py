@@ -2,189 +2,145 @@ import json
 import os
 import numpy as np
 
-# ─────────────────────────────────────────────
-# LOAD DATASETS
-# ─────────────────────────────────────────────
+# ───────────────── LOAD DATA ─────────────────
+BASE_DIR = os.path.dirname(__file__)
 
-HEALTH_IMPACT_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "data",
-    "health_impact_dataset.json"
-)
-
-with open(HEALTH_IMPACT_PATH, "r") as f:
-    HEALTH_IMPACT_DATA = json.load(f)
-
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "health_dataset.json")
-
-with open(DATA_PATH, "r") as f:
+with open(os.path.join(BASE_DIR, "data/health_dataset.json")) as f:
     HEALTH_DATA = json.load(f)
 
-
-# ─────────────────────────────────────────────
-# HELPERS
-# ─────────────────────────────────────────────
-
-def get_pollutant_health_data(pollutant):
-    return HEALTH_DATA[pollutant].copy()
+with open(os.path.join(BASE_DIR, "data/health_impact_dataset.json")) as f:
+    HEALTH_IMPACT_DATA = json.load(f)
 
 
-def compute_excess_exposure(pollutant, predicted_value):
-    data = get_pollutant_health_data(pollutant)
+# ───────────────── HELPERS ─────────────────
+def get_data(pollutant):
+    if pollutant not in HEALTH_DATA:
+        raise ValueError(f"Missing pollutant data: {pollutant}")
+    return HEALTH_DATA[pollutant]
+
+
+def compute_rr(pollutant, value):
+    data = get_data(pollutant)
+
     baseline = data["baseline"]["value"]
-    return max(0, predicted_value - baseline)
-
-
-def compute_relative_risk(pollutant, predicted_value):
-    data = get_pollutant_health_data(pollutant)
-
     rr_per_unit = data["rr_per_unit"]
-    delta_c_unit = data["delta_c_unit"]
-    baseline = data["baseline"]["value"]
+    delta_unit = data["delta_c_unit"]
 
-    delta_c = max(0, predicted_value - baseline)
+    delta = max(0, value - baseline)
 
-    return rr_per_unit ** (delta_c / delta_c_unit)
+    return rr_per_unit ** (delta / delta_unit)
 
 
-def interpret_health_risk(rr, pollutant):
-    impact_data = HEALTH_IMPACT_DATA.get(pollutant, {})
-    effects = impact_data.get("short_term_effects", [])
+def compute_exposure_weight(delta):
+    """
+    Normalize exposure contribution
+    Prevents domination by single pollutant
+    """
+    return np.log1p(delta)
 
-    risk_increase = (rr - 1) * 100
-    primary_effect = effects[0] if effects else "health effects"
 
-    if risk_increase <= 0:
+def interpret(total_rr):
+
+    # ── STEP 1: LOG-SCALED RISK ──
+    raw_increase = max(0, total_rr - 1)
+
+    # logarithmic scaling (prevents exaggeration)
+    scaled = np.log1p(raw_increase) * 100
+
+    increase = float(scaled)
+
+    # ── STEP 2: LEVEL CLASSIFICATION ──
+    if increase <= 5:
         level = "Minimal"
-        message = "Air quality is within safe limits."
-
-    elif risk_increase <= 5:
-        level = "Minimal"
-        message = f"Negligible increase in risk. No significant {primary_effect} expected."
-
-    elif risk_increase <= 20:
+    elif increase <= 15:
         level = "Mild"
-        message = f"Low increase in risk (~{round(risk_increase,1)}%). Mild {primary_effect} possible in sensitive groups."
-
-    elif risk_increase <= 40:
+    elif increase <= 35:
         level = "Moderate"
-        message = f"Moderate increase in risk (~{round(risk_increase,1)}%). {primary_effect} may affect general population."
-
     else:
         level = "Severe"
-        message = f"High increase in risk (~{round(risk_increase,1)}%). Significant {primary_effect} likely across population."
 
-    return {
-        "risk_level": level,
-        "risk_increase": float(risk_increase),
-        "message": message
-    }
+    return level, increase
 
 
-# ─────────────────────────────────────────────
-# MAIN ENGINE
-# ─────────────────────────────────────────────
-
+# ───────────────── CORE ENGINE ─────────────────
 def compute_health_risk(predictions):
 
     results = {}
 
     for horizon, pollutants in predictions.items():
 
-        duration = int(horizon.replace("h", ""))
+        rr_values = {}
+        deltas = {}
+        weights = {}
 
-        horizon_result = {
-            "relative_risk": {},
-            "excess_exposure": {},
-            "total_relative_risk": None,
-            "pollutant_contribution": None,
-            "dominant_pollutant": None,
-            "interpretation": None,
-            "health_impact": None
-        }
+        # ── STEP 1: INDIVIDUAL RR ──
+        for p, value in pollutants.items():
 
-        contributions = {}
-
-        # ── PER POLLUTANT ──
-        for pollutant, value in pollutants.items():
-
-            data = get_pollutant_health_data(pollutant)
+            data = get_data(p)
             baseline = data["baseline"]["value"]
 
-            delta_c = max(0, value - baseline)
+            delta = max(0, value - baseline)
 
-            base_rr = compute_relative_risk(pollutant, value)
+            rr = compute_rr(p, value)
 
-            # duration scaling (log-linear)
-            rr = np.exp(np.log(base_rr) * (duration / 24))
+            rr_values[p] = float(rr)
+            deltas[p] = delta
 
-            horizon_result["relative_risk"][pollutant] = float(rr)
-            horizon_result["excess_exposure"][pollutant] = float(delta_c)
+        # ── STEP 2: NORMALIZED WEIGHTS ──
+        raw_weights = {p: compute_exposure_weight(d) for p, d in deltas.items()}
 
-            # interaction damping (PM overlap)
-            weight = 0.6 if pollutant in ["PM2.5", "PM10"] else 1.0
+        total_weight = sum(raw_weights.values())
 
-            contributions[pollutant] = weight * np.log(rr)
-
-        # ── TOTAL RISK ──
-        total_log = sum(contributions.values())
-        total_rr = np.exp(total_log)
-
-        horizon_result["total_relative_risk"] = float(total_rr)
-
-        # ── CONTRIBUTION (%) ──
-        pollutant_contribution = {}
-
-        if total_log <= 0:
-            for p in contributions:
-                pollutant_contribution[p] = 0.0
+        if total_weight == 0:
+            weights = {p: 0 for p in raw_weights}
         else:
-            for p, val in contributions.items():
-                pollutant_contribution[p] = float((val / total_log) * 100)
+            weights = {p: w / total_weight for p, w in raw_weights.items()}
 
-        horizon_result["pollutant_contribution"] = pollutant_contribution
+        # ── STEP 3: COMBINE RISKS ──
+        log_total = 0
 
-        # ── DOMINANT POLLUTANT ──
-        dominant_pollutant = max(
-            pollutant_contribution,
-            key=pollutant_contribution.get
-        )
-        horizon_result["dominant_pollutant"] = dominant_pollutant
+        for p in rr_values:
+            log_total += weights[p] * np.log(rr_values[p])
 
-        # ── INTERPRETATION (TOTAL RISK) ──
-        interpretation = interpret_health_risk(total_rr, dominant_pollutant)
-        horizon_result["interpretation"] = interpretation
+        total_rr = float(np.exp(log_total))
 
-        horizon_result["total_risk_interpretation"] = (
-            f"Combined exposure risk is {round((total_rr - 1)*100,1)}% higher than baseline"
-        )
+        # ── STEP 4: CONTRIBUTION ──
+        contribution = {}
 
-        # ── MULTI-POLLUTANT HEALTH IMPACT ──
-        significant_pollutants = [
-            p for p, v in pollutant_contribution.items() if v >= 10
-        ]
+        if log_total <= 0:
+            contribution = {p: 0 for p in rr_values}
+        else:
+            for p in rr_values:
+                contribution[p] = float(
+                    (weights[p] * np.log(rr_values[p])) / log_total * 100
+                )
 
-        short_term_effects = set()
-        long_term_effects = set()
-        sensitive_groups = set()
-        sources = set()
+        # ── STEP 5: DOMINANT ──
+        dominant = max(contribution, key=contribution.get)
 
-        for p in significant_pollutants:
-            impact_data = HEALTH_IMPACT_DATA.get(p, {})
+        # ── STEP 6: INTERPRET ──
+        level, increase = interpret(total_rr)
 
-            short_term_effects.update(impact_data.get("short_term_effects", []))
-            long_term_effects.update(impact_data.get("long_term_effects", []))
-            sensitive_groups.update(impact_data.get("sensitive_groups", []))
-            sources.update(impact_data.get("sources", []))
+        # ── STEP 7: HEALTH IMPACT ──
+        impact = HEALTH_IMPACT_DATA.get(dominant, {})
 
-        horizon_result["health_impact"] = {
-            "affected_pollutants": significant_pollutants,
-            "short_term_effects": list(short_term_effects),
-            "long_term_effects": list(long_term_effects),
-            "sensitive_groups": list(sensitive_groups),
-            "sources": list(sources)
+        results[horizon] = {
+            "relative_risk": rr_values,
+            "excess_exposure": deltas,
+            "total_relative_risk": total_rr,
+            "pollutant_contribution": contribution,
+            "dominant_pollutant": dominant,
+            "interpretation": {
+                "risk_level": level,
+                "risk_increase": increase,
+                "message": f"Health risk increased by {round(increase,1)}%"
+            },
+            "health_impact": {
+                "short_term_effects": impact.get("short_term_effects", []),
+                "long_term_effects": impact.get("long_term_effects", []),
+                "sensitive_groups": impact.get("sensitive_groups", []),
+                "sources": impact.get("sources", [])
+            }
         }
-
-        results[horizon] = horizon_result
 
     return results

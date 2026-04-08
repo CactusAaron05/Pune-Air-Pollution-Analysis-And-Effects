@@ -1,35 +1,74 @@
-function formatWhy(why) {
-  return why?.replaceAll("_", " ").replace("+", " + ") || "Unknown";
+import React from "react";
+
+function formatWhy(text) {
+  return text
+    .split("+")
+    .map(s => s.trim())
+    .map(s => s.replaceAll("_", " "))
+    .map(s => s.replace(/\b\w/g, c => c.toUpperCase()))
+    .join(" + ");
 }
 
 function Solutions({ data }) {
 
   if (!data) return null;
 
+  const shortTerm = data.short_term || [];
+  const longTerm = data.long_term || [];
+  const explanations = data.explanation || [];
+
   return (
-    <div className="section">
     <div className="solutions">
 
       <div className="solutions-context">
-        <div>{data.where} | {data.when}</div>
-        <div>⚠ {formatWhy(data.why)}</div>
+
+        <div>
+          {data.where} | {data.when}
+        </div>
+
+        <div>
+          Cause: {formatWhy(data.why)}
+        </div>
+
       </div>
 
       <div className="solutions-block">
-        <h4>Immediate Actions</h4>
-        {data.short_term.map((s, i) => (
-          <div key={i} className="solution-item primary">{s}</div>
-        ))}
+
+        <div>Short-Term Actions</div>
+
+        {shortTerm.map((action, i) => {
+
+          const explanation = explanations[i] || "";
+
+          return (
+            <div key={i} className={`solution-item ${i < 2 ? "primary" : "secondary"}`}>
+
+              <div>🛠️ {action}</div>
+
+              {explanation && (
+                <div className="text-muted">
+                  {explanation}
+                </div>
+              )}
+
+            </div>
+          );
+        })}
+
       </div>
 
       <div className="solutions-block">
-        <h4>Long-term Strategy</h4>
-        {data.long_term.map((s, i) => (
-          <div key={i} className="solution-item secondary">{s}</div>
+
+        <div>Long-Term Actions</div>
+
+        {longTerm.map((action, i) => (
+          <div key={i} className="solution-item secondary">
+            {action}
+          </div>
         ))}
+
       </div>
 
-    </div>
     </div>
   );
 }

@@ -1,72 +1,100 @@
-import { HeartPulse } from "lucide-react";
-
+import React from "react";
 
 function Health({ data }) {
 
-  const h1 = data?.["1h"];
-  const h3 = data?.["3h"];
-  const h6 = data?.["6h"];
+  if (!data) return null;
 
-  if (!h1) return null;
+  const h1 = data["1h"];
+  const h3 = data["3h"];
+  const h6 = data["6h"];
 
-  const riskLevel = h1.interpretation?.risk_level;
-  const riskIncrease = h1.interpretation?.risk_increase;
-  const message = h1.interpretation?.message;
+  if (!h1 || !h3 || !h6) return null;
 
-  const groups = h1.health_impact?.sensitive_groups || [];
+  const riskLevel = h1.interpretation.risk_level;
+  const riskIncrease = Math.round(h1.interpretation.risk_increase);
+
+  const dominant = h1.dominant_pollutant;
+
+  const contribution = h1.pollutant_contribution || {};
+
+  const shortTerm = h1.health_impact?.short_term_effects || [];
+  const sensitive = h1.health_impact?.sensitive_groups || [];
+
+  // ✅ FIX: logic moved OUTSIDE return
+  const r1 = h1.interpretation.risk_increase;
+  const r3 = h3.interpretation.risk_increase;
+  const r6 = h6.interpretation.risk_increase;
+
+  const values = [
+    { label: "1h", value: r1 },
+    { label: "3h", value: r3 },
+    { label: "6h", value: r6 }
+  ];
+
+  const max = Math.max(r1, r3, r6);
 
   return (
-    <div className="section">
     <div className="health">
-    {/* <HeartPulse size={18} /> */}
-      {/* 🔴 MAIN RISK CARD */}
+
+      {/* MAIN */}
       <div className="health-main">
 
         <div className="health-risk-level">
-          {riskLevel} Risk
+          🫀 {riskLevel} Risk
         </div>
 
         <div className="health-risk-increase">
-          +{riskIncrease.toFixed(1)}%
+          +{riskIncrease}%
         </div>
 
         <div className="health-message">
-          {message}
+          Dominant pollutant: {dominant}
         </div>
 
       </div>
 
-      {/* 🧠 TREND (SMART INSIGHT) */}
+      {/* TREND */}
       <div className="health-trend">
+        {values.map((item, i) => {
 
-        <div className="health-trend-item">
-          +3h: {h3?.interpretation?.risk_level}
-        </div>
+          let type = "";
 
-        <div className="health-trend-item">
-          +6h: {h6?.interpretation?.risk_level}
-        </div>
+          if (item.value === max) type = "peak";
+          else if (i === 0) type = "current";
+          else type = "low";
 
+          return (
+            <div key={i} className={`health-trend-item ${type}`}>
+              <span>{item.label}</span>
+              <span>{Math.round(item.value)}%</span>
+            </div>
+          );
+        })}
       </div>
 
-      {/* 👥 SENSITIVE GROUPS */}
-      <div className="health-section">
-
-        <div className="health-section-title">
-          Sensitive Groups
-        </div>
-
-        <div className="health-tags">
-          {groups.map((g, i) => (
-            <span key={i} className="health-tag">
-              {g.replaceAll("_", " ")}
-            </span>
-          ))}
-        </div>
-
+      {/* CONTRIBUTION */}
+      <div className="health-tags">
+        {Object.entries(contribution).map(([k, v]) => (
+          <div key={k} className="health-tag">
+            {k}: {Math.round(v)}%
+          </div>
+        ))}
       </div>
 
-    </div>
+      {/* EFFECTS */}
+      <div className="health-tags">
+        {shortTerm.map((e, i) => (
+          <div key={i} className="health-tag">{e}</div>
+        ))}
+      </div>
+
+      {/* SENSITIVE */}
+      <div className="health-tags">
+        {sensitive.map((g, i) => (
+          <div key={i} className="health-tag">{g}</div>
+        ))}
+      </div>
+
     </div>
   );
 }

@@ -16,7 +16,7 @@ function AQIGraph({ data }) {
   return (
     <div className="aqi-graph">
 
-      <div className="aqi-graph-title">AQI Trend</div>
+      <div className="aqi-graph-title">📈 AQI Trend</div>
 
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={chartData}>

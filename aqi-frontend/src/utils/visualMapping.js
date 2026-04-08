@@ -11,13 +11,13 @@ const visualMap = {
     image: "https://images.unsplash.com/photo-1581090700227-1e37b190418e"
   },
 
-  industry: {
+  industrial: {
     label: "Industrial Pollution",
     icon: "🏭",
     image: "https://images.unsplash.com/photo-1509395176047-4a66953fd231"
   },
 
-  biomass: {
+  biomass_burning: {
     label: "Biomass Burning",
     icon: "🔥",
     image: "https://images.unsplash.com/photo-1601132359864-5c1e2f7a4b7c"

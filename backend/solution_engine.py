@@ -1,26 +1,21 @@
 import json
 import os
-from learning_engine import get_learned_effectiveness
 
 BASE_DIR = os.path.dirname(__file__)
 
-# ── LOAD CONFIGS ───────────────────────────────────────────────
-
-def load_json(path):
-    with open(path) as f:
+def load_json(name):
+    with open(os.path.join(BASE_DIR, "data", name)) as f:
         return json.load(f)
 
-
-SOLUTIONS = load_json(os.path.join(BASE_DIR, "data", "solutions_dataset.json"))
-REGION_PROFILES = load_json(os.path.join(BASE_DIR, "data", "region_profiles.json"))
-CONFIG = load_json(os.path.join(BASE_DIR, "data", "system_config.json"))
-TIME_STRATEGY = load_json(os.path.join(BASE_DIR, "data", "time_strategy.json"))
-LONG_TERM_POLICY = load_json(os.path.join(BASE_DIR, "data", "long_term_policy.json"))
-POLLUTANT_WEIGHTS = load_json(os.path.join(BASE_DIR, "data", "pollutant_weights.json"))
-SOURCE_PATTERNS = load_json(os.path.join(BASE_DIR, "data", "source_patterns.json"))
+SOLUTIONS = load_json("solutions_dataset.json")
+REGION_PROFILES = load_json("region_profiles.json")
+CONFIG = load_json("system_config.json")
+TIME_STRATEGY = load_json("time_strategy.json")
+LONG_TERM_POLICY = load_json("long_term_policy.json")
+SOURCE_PATTERNS = load_json("source_patterns.json")
 
 
-# ── VALIDATION LAYER (NO FALLBACKS) ─────────────────────────────
+# ───────────────── HELPERS ─────────────────
 
 def validate_key(data, key, context):
     if key not in data:
@@ -28,285 +23,179 @@ def validate_key(data, key, context):
     return data[key]
 
 
-# ── CORE HELPERS ───────────────────────────────────────────────
-
 def get_peak_horizon(predictions):
     return max(predictions, key=predictions.get)
 
+def determine_time_window(predictions, health_risk):
 
-def is_feasible(action, region_profile):
-    constraints = action.get("constraints", {})
+    # extract values
+    aqi_values = [predictions[h] for h in ["1h", "3h", "6h"]]
 
-    for key, allowed_values in constraints.items():
-        if validate_key(region_profile, key, "region_profile") not in allowed_values:
-            return False
+    risk_levels = [
+        health_risk[h]["interpretation"]["risk_level"]
+        for h in ["1h", "3h", "6h"]
+    ]
 
-    return True
+    # ── CASE 1: sustained severe ──
+    if all(r == "Severe" for r in risk_levels):
+        return "next 6h (sustained high pollution)"
 
-def compute_feasibility_score(action, region_profile):
+    # ── CASE 2: worsening ──
+    if aqi_values[0] < aqi_values[1] < aqi_values[2]:
+        return "next 6h (worsening conditions)"
 
+    # ── CASE 3: improving but still high ──
+    if aqi_values[0] > aqi_values[1] > aqi_values[2]:
+        if risk_levels[0] in ["Moderate", "Severe"]:
+            return "next few hours (gradual improvement)"
+
+    # ── DEFAULT ──
+    peak = max(predictions, key=predictions.get)
+    return f"next {peak}"
+
+
+def compute_feasibility(action, profile):
     constraints = action.get("constraints", {})
 
     if not constraints:
         return 1.0
 
+    score = 0
     total = 0
-    matched = 0
 
-    for key, allowed_values in constraints.items():
-
-        region_value = validate_key(region_profile, key, "region_profile")
-
+    for key, allowed in constraints.items():
         total += 1
-
-        if region_value in allowed_values:
-            matched += 1
+        if profile.get(key) in allowed:
+            score += 1
         else:
-            matched += 0.5   # partial compatibility
+            score += 0.5  # partial
 
-    return matched / total
-
-
-def compute_score(effectiveness, confidence, severity_weight, pollutant_weight, feasibility_score):
-
-    impact = effectiveness * pollutant_weight
-
-    context_factor = (0.6 * feasibility_score) + (0.4 * confidence)
-
-    return impact * context_factor * severity_weight
+    return score / total if total else 1.0
 
 
-def should_include_long_term(primary, secondary, risk_level):
+def compute_pollutant_alignment(source, dominant_pollutant):
+    pattern = SOURCE_PATTERNS.get(source, {})
+    pollutants = pattern.get("pollutants", [])
 
-    conditions = validate_key(LONG_TERM_POLICY, "conditions", "long_term_policy")
-
-    severity_levels = validate_key(conditions, "severity_levels", "long_term_policy")
-    min_conf = validate_key(conditions, "min_confidence", "long_term_policy")
-    require_secondary = validate_key(conditions, "require_secondary", "long_term_policy")
-
-    # Severity must justify structural intervention
-    if risk_level not in severity_levels:
-        return False
-
-    # Use combined confidence instead of only primary
-    total_confidence = primary["confidence"]
-    if secondary:
-        total_confidence += secondary["confidence"]
-
-    if total_confidence < min_conf:
-        return False
-
-    if require_secondary and not secondary:
-        return False
-
-    return True
+    if dominant_pollutant in pollutants:
+        return 1.0
+    return 0.5
 
 
-# ── MAIN ENGINE ────────────────────────────────────────────────
+def severity_multiplier(level):
+    return {
+        "Minimal": 0.5,
+        "Mild": 0.8,
+        "Moderate": 1.0,
+        "Severe": 1.3
+    }.get(level, 1.0)
+
+
+# ───────────────── MAIN ENGINE ─────────────────
 
 def generate_solutions(region, predictions, causes, health_risk):
 
-    # ── Validate inputs ──
-    if not predictions or not isinstance(predictions, dict):
-        raise ValueError("Invalid predictions input")
+    region_profile = validate_key(REGION_PROFILES, region, "region_profiles")
 
-    region_profile = validate_key(REGION_PROFILES, region, "REGION_PROFILES")
-
-    peak = get_peak_horizon(predictions)
+    peak = max(predictions, key=predictions.get)
+    time_window = determine_time_window(predictions, health_risk)   
 
     cause_block = validate_key(causes, peak, "causes")
-
     primary = validate_key(cause_block, "primary_source", "cause_block")
     secondary = cause_block.get("secondary_source")
 
     risk_block = validate_key(health_risk, peak, "health_risk")
-
     interpretation = validate_key(risk_block, "interpretation", "health_risk")
-    risk_level = validate_key(interpretation, "risk_level", "health_risk")
-    severity_factor_map = {
-    "Minimal": 0.5,
-    "Mild": 0.8,
-    "Moderate": 1.0,
-    "Severe": 1.3
-}
 
-    severity_factor = severity_factor_map.get(risk_level, 1.0)
-    severity_weight = validate_key(CONFIG["severity_weights"], risk_level, "severity_weights")
+    risk_level = interpretation["risk_level"]
+    dominant_pollutant = risk_block["dominant_pollutant"]
 
-    relative_risks = validate_key(risk_block, "relative_risk", "health_risk")
+    severity_factor = severity_multiplier(risk_level)
 
-    pollutant_weights_map = {}
-
-    for pollutant, rr in relative_risks.items():
-
-        weight = validate_key(
-            validate_key(POLLUTANT_WEIGHTS, pollutant, "pollutant_weights"),
-            "toxicity_weight",
-            "pollutant_weights"
-        )
-
-        pollutant_weights_map[pollutant] = rr * weight
-    
-
-    allowed_types = validate_key(
-        validate_key(TIME_STRATEGY, peak, "time_strategy"),
-        "allowed_action_types",
-        "time_strategy"
-    )
-
-    include_long_term = should_include_long_term(primary, secondary, risk_level)
+    allowed_types = TIME_STRATEGY.get(peak, {}).get("allowed_action_types", ["short"])
 
     candidate_actions = []
 
-    # ── PROCESS SOURCE ──
-
-    def compute_pollutant_alignment(source, pollutant_weights_map):
-
-        if source not in SOURCE_PATTERNS:
-            return 1.0
-
-        pollutants = validate_key(SOURCE_PATTERNS[source], "pollutants", "source_patterns")
-
-        score = 0
-        total = 0
-
-        for p, weight in pollutant_weights_map.items():
-            total += weight
-            if p in pollutants:
-                score += weight
-
-        if total == 0:
-            return 1.0
-
-        return score / total
-
-    def process_source(source_obj):
+    def process_source(source_obj, weight):
 
         if not source_obj:
             return
 
-        source = validate_key(source_obj, "source", "source_obj")
-        confidence = validate_key(source_obj, "confidence", "source_obj")
+        source = source_obj["source"]
+        confidence = source_obj["confidence"]
 
-        pollutant_alignment = compute_pollutant_alignment(source, pollutant_weights_map)
-        # Assign weight based on rank (primary vs secondary)
-        source_weight = 1.0 if source_obj == primary else 0.7
         if source not in SOLUTIONS:
-            raise ValueError(f"Missing solutions for source: {source}")
+            return
 
-        source_data = SOLUTIONS[source]
+        alignment = compute_pollutant_alignment(source, dominant_pollutant)
 
         for action_type in ["short_term", "long_term"]:
 
-            action_list = validate_key(source_data, action_type, "solutions")
+            if action_type == "long_term" and "long" not in allowed_types:
+                continue
 
-            for action in action_list:
+            for action in SOLUTIONS[source][action_type]:
 
-                feasibility_score = compute_feasibility_score(action, region_profile)
+                feasibility = compute_feasibility(action, region_profile)
 
-                # ── Learned effectiveness ──
-                learned = get_learned_effectiveness(source, action["action"])
+                impact = action["effectiveness"]
 
-                selection_policy = validate_key(CONFIG, "learning_selection_policy", "system_config")
-
-                use_learned = validate_key(
-                    selection_policy,
-                    "use_learned_when_available",
-                    "learning_selection_policy"
+                score = (
+                    impact
+                    * feasibility
+                    * confidence
+                    * alignment
+                    * severity_factor
+                    * weight
                 )
 
-                effectiveness_value = (
-                    learned if (use_learned and learned is not None)
-                    else action["effectiveness"]
+                explanation = (
+                    f"{action['action']} → "
+                    f"targets {source}, "
+                    f"dominant pollutant: {dominant_pollutant}, "
+                    f"feasibility: {round(feasibility,2)}, "
+                    f"confidence: {round(confidence,2)}"
                 )
-
-                score = compute_score(
-    effectiveness_value,
-    confidence,
-    severity_weight,
-    1.0,
-    feasibility_score
-) * source_weight * pollutant_alignment * severity_factor
 
                 candidate_actions.append({
                     "type": "short" if action_type == "short_term" else "long",
                     "action": action["action"],
                     "score": score,
+                    "explanation": explanation,
                     "source": source
                 })
 
-    # ── Run for primary + secondary ──
-    process_source(primary)
-    process_source(secondary)
+    # Primary has more weight
+    process_source(primary, 1.0)
+    process_source(secondary, 0.7)
 
-    # ── Ranking ──
     ranked = sorted(candidate_actions, key=lambda x: x["score"], reverse=True)
 
-    selection_policy = validate_key(CONFIG, "selection_policy", "system_config")
-
-    max_short = validate_key(selection_policy, "max_short_term", "selection_policy")
-    max_long = validate_key(selection_policy, "max_long_term", "selection_policy")
+    max_short = CONFIG["selection_policy"]["max_short_term"]
+    max_long = CONFIG["selection_policy"]["max_long_term"]
 
     short_term = []
     long_term = []
-    explanation = []
-
-    seen_actions = set()
-    seen_sources = {}
+    explanations = []
 
     for item in ranked:
 
-        source = item["source"]
-        action = item["action"]
-        action_type = item["type"]
+        if item["type"] == "short" and len(short_term) < max_short:
+            short_term.append(item["action"])
+            explanations.append(item["explanation"])
 
-        source_count = seen_sources.get(source, 0)
+        elif item["type"] == "long" and len(long_term) < max_long:
+            long_term.append(item["action"])
+            explanations.append(item["explanation"])
 
-        # ── 1. Avoid duplicate actions ──
-        if action in seen_actions:
-            continue
-
-        # ── 2. Limit domination from one source ──
-        if source_count >= 3:
-            continue
-
-        # ── 3. Time + policy filtering ──
-        if action_type == "short":
-            if "short" not in allowed_types:
-                continue
-
-        elif action_type == "long":
-            if not include_long_term:
-                continue
-
-        # ── 4. Selection ──
-        if action_type == "short" and len(short_term) < max_short:
-            short_term.append(action)
-
-        elif action_type == "long" and len(long_term) < max_long:
-            long_term.append(action)
-
-        else:
-            continue
-
-    # ── 5. Track usage ──
-        seen_actions.add(action)
-        seen_sources[source] = source_count + 1
-
-        # ── 6. Explanation ──
-        explanation.append(
-            f"{action} | source={source} | score={round(item['score'], 3)}"
-        )
-
-    # ── 7. Stop condition ──
         if len(short_term) >= max_short and len(long_term) >= max_long:
             break
 
     return {
         "where": region,
-        "when": f"next {peak}",
+        "when": time_window,
         "why": f"{primary['source']} + {secondary['source']}" if secondary else primary["source"],
         "short_term": short_term,
         "long_term": long_term,
-        "explanation": explanation
+        "explanation": explanations
     }

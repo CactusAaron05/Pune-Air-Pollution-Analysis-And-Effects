@@ -20,13 +20,14 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const regions = [
-    "Hadapsar",
+    "Alandi",
     "Bhosari",
-    "Nigdi",
-    "Katraj",
+    "Bhumkar Nagar",
+    "Katraj Dairy",
+    "Mhada Colony",
     "Karve Road",
-    "Pashan",
-    "Alandi"
+    "Panchawati Pashan",
+    "Hadapsar"
   ];
 
   useEffect(() => {
@@ -75,22 +76,22 @@ function Dashboard() {
       <Alerts data={data.alerts} />
 
       {/* SECTIONS */}
-      <AccordionSection title="Pollutants" defaultOpen>
+      <AccordionSection title="🌫️ Pollutants" defaultOpen>
         <Pollutants
           data={data.predicted_pollutants}
           health={data.health_risk}
         />
       </AccordionSection>
 
-      <AccordionSection title="Causes">
+      <AccordionSection title="🔍 Causes">
         <Causes data={data.causes} />
       </AccordionSection>
 
-      <AccordionSection title="Health">
+      <AccordionSection title="🫀 Health">
         <Health data={data.health_risk} />
       </AccordionSection>
 
-      <AccordionSection title="Solutions">
+      <AccordionSection title="🛠️ Solutions">
         <Solutions data={data.solutions} />
       </AccordionSection>
 

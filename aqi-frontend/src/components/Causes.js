@@ -1,9 +1,13 @@
+import React from "react";
 import visualMap from "../utils/visualMapping";
 
-function Causes({ data }) {
+function formatSource(source) {
+  return source
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
 
-  // 🔥 Use ONLY 1h (current state)
-  const cause = data?.["1h"];
+function CauseBlock({ title, cause }) {
 
   if (!cause) return null;
 
@@ -11,79 +15,44 @@ function Causes({ data }) {
   const secondary = cause.secondary_source;
 
   const primaryVisual = visualMap[primary.source] || {};
-  const secondaryVisual = visualMap[secondary.source] || {};
+  const secondaryVisual = visualMap[secondary?.source] || {};
+
+  return (
+    <div className="cause-card">
+      
+      <div className="cause-header">{title}</div>
+
+      <div className="cause-primary">
+        <div className="cause-label">
+          🔍 {primaryVisual.label || formatSource(primary.source)}
+        </div>
+
+        <div>
+          {Math.round(primary.confidence * 100)}%
+        </div>
+      </div>
+
+      {secondary && (
+        <div className="cause-secondary">
+          {secondaryVisual.label || formatSource(secondary.source)} (
+          {Math.round(secondary.confidence * 100)}%)
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+function Causes({ data }) {
+
+  if (!data) return null;
 
   return (
     <div className="causes">
 
-      {/* 🔴 PRIMARY */}
-      <div className="cause-card primary">
-
-        <div className="cause-header">Primary Cause</div>
-
-        <div className="cause-main">
-
-          <div className="cause-icon">
-            {primaryVisual.icon || "⚠️"}
-          </div>
-
-          <div className="cause-info">
-
-            <div className="cause-label">
-              {primaryVisual.label || primary.source}
-            </div>
-
-            {/* CONFIDENCE BAR */}
-            <div className="cause-confidence-bar">
-              <div
-                className="cause-confidence-fill"
-                style={{ width: `${primary.confidence * 100}%` }}
-              ></div>
-            </div>
-
-            <div className="cause-confidence-text">
-              {(primary.confidence * 100).toFixed(1)}% confidence
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* 🟠 SECONDARY */}
-      <div className="cause-card secondary">
-
-        <div className="cause-header">Secondary Cause</div>
-
-        <div className="cause-main">
-
-          <div className="cause-icon">
-            {secondaryVisual.icon || "ℹ️"}
-          </div>
-
-          <div className="cause-info">
-
-            <div className="cause-label">
-              {secondaryVisual.label || secondary.source}
-            </div>
-
-            <div className="cause-confidence-bar">
-              <div
-                className="cause-confidence-fill secondary"
-                style={{ width: `${secondary.confidence * 100}%` }}
-              ></div>
-            </div>
-
-            <div className="cause-confidence-text">
-              {(secondary.confidence * 100).toFixed(1)}% confidence
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
+      <CauseBlock title="Now (1h)" cause={data["1h"]} />
+      <CauseBlock title="Soon (3h)" cause={data["3h"]} />
+      <CauseBlock title="Later (6h)" cause={data["6h"]} />
 
     </div>
   );
