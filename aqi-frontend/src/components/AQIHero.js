@@ -2,7 +2,7 @@ import React from "react";
 
 function AQIHero({ data }) {
 
-  // ✅ handle both possible shapes
+  // handle both shapes
   const aqi =
     data?.predicted_aqi ||
     data ||
@@ -37,18 +37,33 @@ function AQIHero({ data }) {
   return (
     <div className="aqi-hero">
 
-      <div className="aqi-hero-value">
-        {displayAQI}
+      {/* LEFT */}
+      <div className="aqi-hero-left">
+
+        <div className="aqi-hero-value">
+          {displayAQI}
+        </div>
+
+        <div className="aqi-hero-label">
+          AQI (1h)
+        </div>
+
+        <div className={`aqi-hero-trend ${trendClass}`}>
+          {hasData
+            ? (trend === "Improving" ? "↓" :
+               trend === "Worsening" ? "↑" : "→") + " " + trend
+            : "Loading..."}
+        </div>
+
       </div>
 
-      <div className={`aqi-hero-trend ${trendClass}`}>
-        {hasData
-          ? (trend === "Improving" ? "↓" :
-             trend === "Worsening" ? "↑" : "→") + " " + trend
-          : "Loading..."}
-      </div>
+      {/* RIGHT */}
+      <div className="aqi-hero-right">
 
-      {hasData && (
+        <div className="aqi-dominant">
+          🌫️ Dominant Pollutant
+        </div>
+
         <div className="aqi-mini-cards">
 
           <div className="aqi-mini-card current">
@@ -67,7 +82,8 @@ function AQIHero({ data }) {
           </div>
 
         </div>
-      )}
+
+      </div>
 
     </div>
   );

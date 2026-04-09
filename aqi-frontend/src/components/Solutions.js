@@ -59,15 +59,15 @@ function Solutions({ data }) {
 
       <div className="solutions-block">
 
-        <div>Long-Term Actions</div>
+  <div>Long-Term Actions</div>
 
-        {longTerm.map((action, i) => (
-          <div key={i} className="solution-item secondary">
-            {action}
-          </div>
-        ))}
+  {longTerm.map((action, i) => (
+    <div key={i} className="solution-item secondary">
+      <div>🌱 {action}</div>
+    </div>
+  ))}
 
-      </div>
+</div>
 
     </div>
   );

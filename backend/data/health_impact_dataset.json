@@ -11,11 +11,11 @@
       "Lung cancer"
     ],
     "sensitive_groups": [
-      "children",
-      "elderly",
-      "pregnant_women",
-      "people_with_cardiovascular_disease",
-      "people_with_respiratory_disease"
+      "Children",
+      "Elderly",
+      "Pregnant women",
+      "People with cardiovascular_disease",
+      "People with respiratory_disease"
     ],
     "sources": [
       "WHO Air Quality Guidelines 2021",
@@ -33,9 +33,9 @@
       "Reduced lung function"
     ],
     "sensitive_groups": [
-      "children",
-      "elderly",
-      "people_with_respiratory_disease"
+      "Children",
+      "Elderly",
+      "People with respiratory_disease"
     ],
     "sources": [
       "WHO Air Quality Guidelines 2021"
@@ -69,9 +69,9 @@
       "Chronic respiratory disease"
     ],
     "sensitive_groups": [
-      "children",
-      "outdoor_workers",
-      "people_with_respiratory_disease"
+      "Children",
+      "Outdoor workers",
+      "People with respiratory disease"
     ],
     "sources": [
       "WHO Air Quality Guidelines 2021"
@@ -88,8 +88,8 @@
       "Cardiovascular stress"
     ],
     "sensitive_groups": [
-      "people_with_cardiovascular_disease",
-      "pregnant_women"
+      "People with cardiovascular disease",
+      "Pregnant women"
     ],
     "sources": [
       "WHO Air Quality Guidelines 2021",

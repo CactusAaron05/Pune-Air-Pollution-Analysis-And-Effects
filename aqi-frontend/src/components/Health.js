@@ -10,17 +10,18 @@ function Health({ data }) {
 
   if (!h1 || !h3 || !h6) return null;
 
+  // ── MAIN DATA ──
   const riskLevel = h1.interpretation.risk_level;
   const riskIncrease = Math.round(h1.interpretation.risk_increase);
 
   const dominant = h1.dominant_pollutant;
-
   const contribution = h1.pollutant_contribution || {};
 
   const shortTerm = h1.health_impact?.short_term_effects || [];
+  const longTerm = h1.health_impact?.long_term_effects || [];
   const sensitive = h1.health_impact?.sensitive_groups || [];
 
-  // ✅ FIX: logic moved OUTSIDE return
+  // ── TREND DATA ──
   const r1 = h1.interpretation.risk_increase;
   const r3 = h3.interpretation.risk_increase;
   const r6 = h6.interpretation.risk_increase;
@@ -48,7 +49,7 @@ function Health({ data }) {
         </div>
 
         <div className="health-message">
-          Dominant pollutant: {dominant}
+          Dominant pollutant: <strong>{dominant}</strong>
         </div>
 
       </div>
@@ -65,34 +66,79 @@ function Health({ data }) {
 
           return (
             <div key={i} className={`health-trend-item ${type}`}>
-              <span>{item.label}</span>
-              <span>{Math.round(item.value)}%</span>
-            </div>
+  <span className="trend-time">{item.label}</span>
+  <span className="trend-percent">{Math.round(item.value)}%</span>
+</div>
           );
         })}
       </div>
 
       {/* CONTRIBUTION */}
-      <div className="health-tags">
-        {Object.entries(contribution).map(([k, v]) => (
-          <div key={k} className="health-tag">
-            {k}: {Math.round(v)}%
-          </div>
-        ))}
+      <div className="health-section">
+        <div className="health-section-title">
+          Pollutant Contribution
+        </div>
+
+        <div className="health-tags">
+          {Object.entries(contribution).map(([k, v]) => {
+
+            const isDominant = k === dominant;
+
+            return (
+              <div
+                key={k}
+                className={`health-tag ${isDominant ? "dominant" : ""}`}
+              >
+                {k}: {Math.round(v)}%
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* EFFECTS */}
-      <div className="health-tags">
-        {shortTerm.map((e, i) => (
-          <div key={i} className="health-tag">{e}</div>
-        ))}
+      {/* SHORT TERM */}
+      <div className="health-section">
+        <div className="health-section-title">
+          Short-Term Effects
+        </div>
+
+        <div className="health-tags">
+          {shortTerm.map((e, i) => (
+            <div key={i} className="health-tag">
+              {e}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* LONG TERM */}
+      <div className="health-section">
+        <div className="health-section-title">
+          Long-Term Effects
+        </div>
+
+        <div className="health-tags">
+          {longTerm.map((e, i) => (
+            <div key={i} className="health-tag">
+              {e}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* SENSITIVE */}
-      <div className="health-tags">
-        {sensitive.map((g, i) => (
-          <div key={i} className="health-tag">{g}</div>
-        ))}
+      <div className="health-section">
+        <div className="health-section-title">
+          Sensitive Groups
+        </div>
+
+        <div className="health-tags">
+          {sensitive.map((g, i) => (
+            <div key={i} className="health-tag">
+              {g.replaceAll("_", " ")}
+            </div>
+          ))}
+        </div>
       </div>
 
     </div>

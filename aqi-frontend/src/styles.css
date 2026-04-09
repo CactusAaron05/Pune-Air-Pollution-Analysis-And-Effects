@@ -15,6 +15,10 @@ body {
 /* ================= HERO ================= */
 
 .aqi-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
   background: linear-gradient(135deg, #1e293b, #0f172a);
   border-radius: 20px;
   padding: 35px;
@@ -24,15 +28,13 @@ body {
     inset 0 0 30px rgba(255,255,255,0.03);
 
   margin-bottom: 25px;
-  position: relative;
-  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-.aqi-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top right, rgba(59,130,246,0.15), transparent);
+/* LEFT */
+.aqi-hero-left {
+  display: flex;
+  flex-direction: column;
 }
 
 .aqi-hero-value {
@@ -42,514 +44,58 @@ body {
 }
 
 .aqi-hero-label {
-  font-size: 22px;
-  opacity: 0.8;
-}
-
-.aqi-hero-trend {
-  margin-top: 8px;
-  font-size: 15px;
-  opacity: 0.7;
-}
-
-/* ================= GRAPH ================= */
-
-.aqi-graph {
-  border-radius: 15px;
-  padding: 20px;
-  background: #0f172a;
-
-  box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-  margin-bottom: 25px;
-}
-
-/* ================= ALERTS ================= */
-
-.alerts {
-  margin-bottom: 25px;
-}
-
-.alert-item {
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-bottom: 10px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  transition: 0.2s;
-}
-
-/* CRITICAL */
-.alert-item.critical {
-  background: linear-gradient(90deg, rgba(220,38,38,0.4), rgba(220,38,38,0.1));
-  border-left: 5px solid #ef4444;
-  box-shadow: 0 0 20px rgba(239,68,68,0.4);
-}
-
-/* NEUTRAL */
-.alert-item.neutral {
-  background: linear-gradient(90deg, rgba(34,197,94,0.3), rgba(34,197,94,0.05));
-  border-left: 5px solid #22c55e;
-}
-
-/* ================= POLLUTANTS ================= */
-
-.pollutants {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-.pollutant-card {
-  background: linear-gradient(135deg, #1e293b, #020617);
-  border-radius: 12px;
-  padding: 16px;
-
-  box-shadow:
-    0 10px 25px rgba(0,0,0,0.4),
-    inset 0 0 10px rgba(255,255,255,0.02);
-
-  transition: all 0.2s ease;
-}
-
-.pollutant-card:hover {
-  transform: translateY(-4px) scale(1.02);
-}
-
-/* DOMINANT */
-.pollutant-card.dominant {
-  border: 2px solid #3b82f6;
-  box-shadow:
-    0 0 25px rgba(59,130,246,0.6),
-    0 10px 25px rgba(0,0,0,0.4);
-}
-
-.pollutant-header {
-  font-size: 14px;
-  margin-bottom: 8px;
-  opacity: 0.8;
-}
-
-.pollutant-bar-container {
-  height: 6px;
-  background: #1e293b;
-  border-radius: 6px;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.pollutant-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
-}
-
-/* ================= CAUSES ================= */
-
-.causes {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-.cause-card {
-  background: #0f172a;
-  border-radius: 12px;
-  padding: 15px;
-
-  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-  transition: 0.2s;
-}
-
-.cause-card:hover {
-  transform: translateY(-3px);
-}
-
-.cause-header {
-  font-size: 13px;
-  margin-bottom: 8px;
-  opacity: 0.7;
-}
-
-/* ================= HEALTH ================= */
-
-.health {
-  background: #0f172a;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 25px;
-
-  box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-}
-
-.health-main {
-  margin-bottom: 15px;
-}
-
-.health-risk-level {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.health-risk-increase {
   font-size: 18px;
-  margin-top: 5px;
-}
-
-.health-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.health-tag {
-  background: #1e293b;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 12px;
-}
-
-/* ================= SOLUTIONS ================= */
-
-.solutions {
-  background: #0f172a;
-  border-radius: 15px;
-  padding: 20px;
-
-  box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-}
-
-.solutions-context {
-  margin-bottom: 20px;
-  border-bottom: 1px solid #334155;
-  padding-bottom: 10px;
-}
-
-.solution-item {
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  transition: 0.2s;
-}
-
-/* PRIMARY */
-.solution-item.primary {
-  background: linear-gradient(90deg, rgba(249,115,22,0.35), rgba(249,115,22,0.1));
-  border-left: 5px solid #f97316;
-}
-
-/* SECONDARY */
-.solution-item.secondary {
-  background: linear-gradient(90deg, rgba(34,197,94,0.25), rgba(34,197,94,0.05));
-  border-left: 5px solid #22c55e;
-}
-
-.solution-item:hover {
-  transform: translateX(4px);
-}
-
-/* ================= INSIGHT BAR ================= */
-
-.insight-bar {
-  background: linear-gradient(90deg, #1e293b, #020617);
-  padding: 12px 16px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  font-weight: 500;
-}
-
-/* ================= SPACING ================= */
-
-.dashboard > * {
-  margin-bottom: 20px;
-}
-
-/* ================= HERO FIX ================= */
-
-/* remove aggressive red line */
-.aqi-hero {
-  border-left: none !important;
-}
-
-/* add subtle AQI glow instead */
-.aqi-hero {
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-/* ================= ALERT BALANCE ================= */
-
-/* neutral shouldn't feel safe */
-.alert-item.neutral {
-  background: linear-gradient(90deg, rgba(234,179,8,0.25), rgba(234,179,8,0.05));
-  border-left: 5px solid #eab308;
-}
-
-/* ================= POLLUTANTS READABILITY ================= */
-
-.pollutant-row span {
-  opacity: 0.9;
-  font-size: 13px;
-}
-
-.pollutant-percent {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-/* ================= CAUSES BOOST ================= */
-
-.cause-card {
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.cause-primary {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.cause-secondary {
   opacity: 0.7;
+  margin-top: -10px;
 }
 
-/* ================= HEALTH EMPHASIS ================= */
-
-.health {
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.health-risk-level {
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.health-risk-increase {
-  color: #f87171;
-}
-
-/* ================= SOLUTIONS READABILITY ================= */
-
-.solution-item {
-  line-height: 1.5;
-}
-
-/* explanation text */
-.solution-item .text-muted {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-/* add spacing between blocks */
-.solutions-block {
-  margin-top: 15px;
-}
-
-/* ================= GRAPH FIX (VISUAL) ================= */
-
-.aqi-graph canvas {
-  filter: brightness(1.2);
-}
-
-
-/* ================= HEALTH ENHANCEMENT ================= */
-
-/* big percentage emphasis */
-.health-risk-increase {
-  font-size: 26px;
-  font-weight: 700;
-  color: #ef4444; /* red for severe */
-}
-
-/* dynamic risk level colors */
-.health-risk-level {
-  position: relative;
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: rgba(239,68,68,0.15);
-  border: 1px solid rgba(239,68,68,0.4);
-}
-
-/* contribution pills */
-.health-tag {
-  background: linear-gradient(135deg, #1e293b, #020617);
-  border: 1px solid rgba(255,255,255,0.06);
-  font-weight: 500;
-}
-
-/* dominant pollutant highlight */
-.health-tag:first-child {
-  border: 1px solid #3b82f6;
-  box-shadow: 0 0 10px rgba(59,130,246,0.5);
-}
-
-/* trend percentages (1h 3h 6h) */
-.health-trend-item {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-/* add subtle separator */
-.health-trend {
-  margin: 10px 0;
-  padding: 8px 0;
-  border-top: 1px solid #334155;
-  border-bottom: 1px solid #334155;
-}
-
-
-/* ================= HERO TREND ================= */
-
-.aqi-hero-trend {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-}
-
-/* improving = green */
-.aqi-hero-trend.improving {
-  color: #22c55e;
-}
-
-/* worsening = red */
-.aqi-hero-trend.worsening {
-  color: #ef4444;
-}
-
-/* stable = yellow */
-.aqi-hero-trend.stable {
-  color: #eab308;
-}
-
-/* small numbers */
-.aqi-hero small {
-  display: block;
-  margin-top: 8px;
-  opacity: 0.6;
-  font-size: 13px;
-}
-
-
-/* ================= REGION SELECT ================= */
-
-/* dropdown main */
-select {
-  background: #020617;
-  color: #e2e8f0;
-}
-
-/* dropdown options (limited support) */
-select option {
-  background: #020617;
-  color: #e2e8f0;
-}
-
-/* hover (only works in some browsers) */
-select option:hover {
-  background: #1e293b;
-}
-/* ================= HEALTH NUMBERS ================= */
-
-.health-trend {
-  display: flex;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-/* each block */
-.health-trend-item {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 10px;
-
-  background: linear-gradient(135deg, #1e293b, #020617);
-  border: 1px solid rgba(255,255,255,0.06);
-
+/* RIGHT */
+.aqi-hero-right {
   display: flex;
   flex-direction: column;
-  align-items: center;
-
-  transition: 0.2s;
+  align-items: flex-end;
 }
 
-/* hover pop */
-.health-trend-item:hover {
-  transform: translateY(-2px);
+.aqi-dominant {
+  background: rgba(59,130,246,0.15);
+  border: 1px solid rgba(59,130,246,0.4);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
-/* label */
-.health-trend-item span:first-child {
-  font-size: 11px;
-  opacity: 0.6;
+/* TREND */
+
+.aqi-hero-trend {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 600;
 }
 
-/* value */
-.health-trend-item span:last-child {
-  font-size: 20px;
-  font-weight: 700;
-}
+.aqi-hero-trend.improving { color: #22c55e; }
+.aqi-hero-trend.worsening { color: #ef4444; }
+.aqi-hero-trend.stable { color: #eab308; }
 
-/* CURRENT */
-.health-trend-item.current {
-  border: 1px solid #3b82f6;
-  box-shadow: 0 0 12px rgba(59,130,246,0.5);
-}
-
-/* PEAK */
-.health-trend-item.peak {
-  border: 1px solid #ef4444;
-  box-shadow: 0 0 12px rgba(239,68,68,0.5);
-}
-
-/* LOWER */
-.health-trend-item.low {
-  opacity: 0.8;
-}
-
-
-/* ================= AQI FUTURE NUMBERS ================= */
-
-.aqi-hero small {
-  display: flex;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.aqi-hero small span {
-  background: #020617;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-/* highlight current */
-.aqi-hero small span:first-child {
-  border: 1px solid #3b82f6;
-}
-
-
-/* AQI MINI CARDS */
+/* MINI CARDS */
 
 .aqi-mini-cards {
   display: flex;
   gap: 10px;
-  margin-top: 12px;
 }
 
 .aqi-mini-card {
   background: #020617;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 8px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
+  text-align: center;
   border: 1px solid rgba(255,255,255,0.05);
+
+  transition: all 0.2s ease;
+}
+
+.aqi-mini-card:hover {
+  transform: translateY(-2px);
 }
 
 .aqi-mini-card span {
@@ -565,30 +111,427 @@ select option:hover {
   border: 1px solid #3b82f6;
 }
 
-/* ================= GRAPH VISIBILITY FIX ================= */
+/* ================= POLLUTANTS ================= */
 
-.aqi-graph canvas {
-  filter: brightness(1.4) contrast(1.2);
+.pollutants {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 15px;
 }
 
-/* axis text */
-.recharts-cartesian-axis-tick-value {
-  fill: #cbd5f5 !important;
+.pollutant-card {
+  background: linear-gradient(135deg, #1e293b, #020617);
+  border-radius: 12px;
+  padding: 16px;
+  transition: 0.25s ease;
+
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.pollutant-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+}
+
+.pollutant-card.dominant {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 25px rgba(59,130,246,0.6);
+}
+
+/* ADDED (does not break anything) */
+.pollutant-header {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.pollutant-bar-container {
+  height: 6px;
+  background: #020617;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.pollutant-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #3b82f6);
+}
+
+.pollutant-percent {
   font-size: 12px;
+  color: #38bdf8;
+  margin-bottom: 6px;
 }
 
-/* grid lines */
-.recharts-cartesian-grid line {
-  stroke: rgba(255,255,255,0.08);
+.pollutant-row {
+  font-size: 12px;
+  opacity: 0.75;
 }
 
-/* line */
-.recharts-line path {
-  stroke-width: 3px !important;
+/* ================= HEALTH ================= */
+
+.health {
+  background: #0f172a;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 25px;
+
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* dot */
-.recharts-dot {
-  fill: #ef4444 !important;
-  stroke: #fff;
+.health-main {
+  margin-bottom: 15px;
+}
+
+.health-risk-level {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.health-risk-increase {
+  font-size: 26px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.health-message {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* SECTIONS */
+
+.health-section {
+  margin-top: 15px;
+}
+
+.health-section-title {
+  font-size: 13px;
+  opacity: 0.6;
+  margin-bottom: 6px;
+}
+
+/* TAGS */
+
+.health-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.health-tag {
+  background: linear-gradient(135deg, #1e293b, #020617);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+
+  transition: 0.2s;
+}
+
+.health-tag:hover {
+  transform: scale(1.05);
+}
+
+.health-tag.dominant {
+  border: 1px solid #3b82f6;
+  box-shadow: 0 0 12px rgba(59,130,246,0.6);
+  font-weight: 600;
+}
+
+/* TREND BOXES */
+
+.health-trend {
+  display: flex;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+.health-trend-item {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+  background: linear-gradient(135deg, #1e293b, #020617);
+
+  transition: 0.2s;
+}
+
+.health-trend-item:hover {
+  transform: translateY(-3px);
+}
+
+.health-trend-item.current {
+  border: 1px solid #3b82f6;
+}
+
+.health-trend-item.peak {
+  border: 1px solid #ef4444;
+}
+
+/* ================= SOLUTIONS ================= */
+
+.solutions {
+  background: #0f172a;
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.solutions-context {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 10px;
+}
+
+.solutions-block {
+  margin-top: 15px;
+}
+
+.solutions-block > div:first-child {
+  font-weight: 600;
+  margin-bottom: 10px;
+  opacity: 0.8;
+}
+
+/* ITEMS */
+
+.solution-item {
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  transition: 0.2s;
+  line-height: 1.5;
+}
+
+.solution-item:hover {
+  transform: translateX(4px);
+}
+
+/* SHORT TERM (PRIMARY) */
+.solution-item.primary {
+  background: linear-gradient(90deg, rgba(249,115,22,0.35), rgba(249,115,22,0.1));
+  border-left: 5px solid #f97316;
+}
+
+/* LONG TERM + SECONDARY */
+.solution-item.secondary {
+  background: linear-gradient(90deg, rgba(34,197,94,0.25), rgba(34,197,94,0.05));
+  border-left: 5px solid #22c55e;
+}
+
+/* TEXT */
+.solution-item .text-muted {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* ================= ALERTS ================= */
+
+.alert-item {
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.alert-item.critical {
+  background: rgba(239,68,68,0.3);
+  border-left: 5px solid #ef4444;
+}
+
+.alert-item.neutral {
+  background: rgba(234,179,8,0.2);
+  border-left: 5px solid #eab308;
+}
+
+/* ================= INSIGHT ================= */
+
+.insight-bar {
+  background: linear-gradient(90deg, #1e293b, #020617);
+  padding: 12px;
+  border-radius: 10px;
+}
+
+/* ================= SELECT BOX (ADDED ONLY) ================= */
+
+.select-wrapper {
+  position: relative;
+  width: 240px;
+}
+
+.select-box {
+  width: 100%;
+  padding: 10px 14px;
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  font-size: 14px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.select-box:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+}
+
+.select-wrapper::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+/* spacing fix (important) */
+.health-trend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* THIS fixes your issue */
+}
+
+/* time label */
+.trend-time {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* percentage */
+.trend-percent {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* container */
+.causes {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+/* card */
+.cause-card {
+  flex: 1;
+
+  background: linear-gradient(135deg, #1e293b, #020617);
+  border-radius: 12px;
+  padding: 14px;
+
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: 0.25s;
+}
+
+.cause-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+/* header (Now / Soon / Later) */
+.cause-header {
+  font-size: 13px;
+  opacity: 0.6;
+  margin-bottom: 10px;
+}
+
+/* PRIMARY ROW */
+.cause-primary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 8px 10px;
+  border-radius: 8px;
+
+  background: rgba(59,130,246,0.12);
+  margin-bottom: 8px;
+}
+
+/* label */
+.cause-label {
+  font-size: 13px;
+}
+
+/* % */
+.cause-confidence {
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+/* secondary */
+.cause-secondary {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+
+/* ================= REGION SELECTOR ================= */
+
+.region-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* label */
+.region-label {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* wrapper */
+.region-select-wrapper {
+  position: relative;
+  width: 220px;
+}
+
+/* select box */
+.region-select {
+  width: 100%;
+  padding: 10px 14px;
+
+  background: linear-gradient(145deg, #1e293b, #020617);
+  color: #e2e8f0;
+
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  appearance: none;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.region-select:hover {
+  border-color: #3b82f6;
+}
+
+/* focus */
+.region-select:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56,189,248,0.25);
+}
+
+/* custom arrow */
+.region-select-wrapper::after {
+  content: "⌄";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+/* dropdown options */
+.region-select option {
+  background: #1e293b;
+  color: #e2e8f0;
 }

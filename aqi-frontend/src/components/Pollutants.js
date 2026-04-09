@@ -41,17 +41,9 @@ function Pollutants({ data, health }) {
               {Math.round(percent)}%
             </div>
 
-            <div className="pollutant-row">
-              1h: {Math.round(v1)}
-            </div>
-
-            <div className="pollutant-row">
-              3h: {Math.round(v3)}
-            </div>
-
-            <div className="pollutant-row">
-              6h: {Math.round(v6)}
-            </div>
+            <div className="pollutant-row">1h: {Math.round(v1)}</div>
+            <div className="pollutant-row">3h: {Math.round(v3)}</div>
+            <div className="pollutant-row">6h: {Math.round(v6)}</div>
 
           </div>
         );

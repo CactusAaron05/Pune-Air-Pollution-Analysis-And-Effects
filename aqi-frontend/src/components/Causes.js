@@ -27,7 +27,7 @@ function CauseBlock({ title, cause }) {
           🔍 {primaryVisual.label || formatSource(primary.source)}
         </div>
 
-        <div>
+        <div className="cause-confidence">
           {Math.round(primary.confidence * 100)}%
         </div>
       </div>

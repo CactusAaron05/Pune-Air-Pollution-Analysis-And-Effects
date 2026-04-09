@@ -55,16 +55,20 @@ function Dashboard() {
 
       {/* 🔴 REGION SELECTOR (RESTORED) */}
       <div className="region-selector">
-        <label>Select Region:</label>
-        <select
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
-        >
-          {regions.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
-      </div>
+  <label className="region-label">Select Region</label>
+
+  <div className="region-select-wrapper">
+    <select
+      className="region-select"
+      value={region}
+      onChange={(e) => setRegion(e.target.value)}
+    >
+      {regions.map((r) => (
+        <option key={r} value={r}>{r}</option>
+      ))}
+    </select>
+  </div>
+</div>
 
       {/* HERO */}
       <AQIHero data={data.predicted_aqi} />
