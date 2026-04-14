@@ -128,6 +128,7 @@ def flush():
         execute_batch(cur, """
             INSERT INTO predictions (region, timestamp, pred_1h, pred_3h, pred_6h)
             VALUES (%s,%s,%s,%s,%s)
+            ON CONFLICT (region, datetime) DO NOTHING
         """, pred_buffer)
 
     print(f"💾 Flushing → AQI: {len(aqi_buffer)} | Predictions: {len(pred_buffer)}")
